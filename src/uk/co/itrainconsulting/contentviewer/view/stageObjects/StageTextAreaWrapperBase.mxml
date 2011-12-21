@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx"
+          creationComplete="onCreationComplete()"
+          x="{model.x}"
+          y="{model.y}"
+          xmlns:so="uk.co.itrainconsulting.contentviewer.view.stageObjects.*">
+    <fx:Declarations>
+        <s:Fade id="fadeEffect"
+                alphaFrom="1"
+                alphaTo="0"
+                duration="400"/>
+
+        <s:Parallel id="parallelEffect"
+                    duration="500">
+            <s:Fade alphaFrom="1"
+                    alphaTo="0"/>
+            <s:Resize heightFrom="50"
+                      widthFrom="50"
+                      heightTo="100"
+                      widthTo="100"/>
+        </s:Parallel>
+
+        <mx:Image id="statusIcon"
+                  addedToStage="onAddedToStage()"
+                  effectEnd="onParallelEnd(event)"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.events.EffectEvent;
+			import mx.managers.PopUpManager;
+			
+			import org.osmf.events.TimeEvent;
+			
+			import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+			import uk.co.itrainconsulting.common.utils.Common;
+			import uk.co.itrainconsulting.common.utils.Embeded;
+
+
+            //to be overriden
+            [Bindable]
+            public function get model():TextMedia {
+                return null;
+            }
+
+            //to be overriden
+            public function set model(value:TextMedia):void {
+                null;
+            }
+
+            private var _timer:Timer;
+            private var _playingEffect:Boolean=false;
+            private var _indexInc:Boolean=true;
+
+            private var wheeled:Boolean=false;
+
+            [Embed('assets/images/play.svg')]
+            private var playIcon:Class;
+
+            [Embed('assets/images/pause.svg')]
+            private var pauseIcon:Class;
+
+            private function onCreationComplete():void {
+                ChangeWatcher.watch(this, 'currentLayerInd', onIndexChange);
+                if (model.advTextMode && model.timeInterval > 0) {
+                    _timer=new Timer(model.timeInterval * 1000);
+                    _timer.start();
+                    _timer.addEventListener(TimerEvent.TIMER, onTimerEvent);
+                    txtTextArea.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseAction);
+                    txtTextArea.addEventListener(MouseEvent.CLICK, onMouseClick);
+                }
+            }
+
+            private function onMouseAction(ev:MouseEvent):void {
+                if (!wheeled) {
+                    _playingEffect=((ev.delta > 0 && model.currentLayerInd < model.textChain.length - 1) || (ev.delta < 0 && model.currentLayerInd > 0))
+                    if (_playingEffect) {
+                        fadeEffect.pause();
+                        _timer.stop();
+                        _indexInc=ev.delta > 0;
+                        fadeEffect.play([txtTextArea]);
+                        _timer.start();
+                    }
+                }
+                wheeled=!wheeled;
+            }
+
+            private function onIndexChange(o:Object):void {
+                if (model.currentLayerInd > -1 && model.currentLayerInd < model.textChain.length) {
+                    txtTextArea.htmlText=model.textChain.getItemAt(model.currentLayerInd) as String;
+                }
+            }
+
+            private function onTimerEvent(ev:TimerEvent):void {
+                if ((model.currentLayerInd == model.textChain.length - 1 && _indexInc) || (model.currentLayerInd == 0 && !_indexInc)) {
+                    _timer.stop();
+                } else {
+                    _playingEffect=true;
+                    fadeEffect.play([txtTextArea]);
+                }
+            }
+
+            private function onEffectEnd():void {
+                if (_playingEffect) {
+                    if (_indexInc)
+                        model.currentLayerInd=(model.currentLayerInd + 1) % model.textChain.length;
+                    else if (model.currentLayerInd == 0)
+                        model.currentLayerInd=model.textChain.length - 1;
+                    else
+                        model.currentLayerInd=(model.currentLayerInd - 1) % model.textChain.length;
+                    _playingEffect=false;
+                    _indexInc=true;
+                    fadeEffect.play([txtTextArea], true);
+                }
+            }
+
+            private function onMouseClick(ev:MouseEvent):void {
+                statusIcon.x=ev.stageX - 25;
+                statusIcon.y=ev.stageY - 25;
+
+                if (_timer.running) {
+                    statusIcon.source=Embeded.PAUSE_ICON;
+                    _timer.stop();
+                } else {
+                    statusIcon.source=Embeded.PLAY_ICON;
+                    _timer.start();
+                }
+                PopUpManager.addPopUp(statusIcon, txtTextArea);
+            }
+
+            private function onAddedToStage():void {
+                parallelEffect.play([statusIcon]);
+            }
+
+            private function onParallelEnd(ev:EffectEvent):void {
+                PopUpManager.removePopUp(statusIcon);
+            }
+
+            private function onButtonClick(ev:Event):void {
+                _indexInc=(ev.currentTarget == imgNext);
+                _playingEffect=true;
+                fadeEffect.play([txtTextArea]);
+            }
+        ]]>
+    </fx:Script>
+    <so:StageTextArea id="txtTextArea"
+                      useHandCursor="{model.useHandCursor}"
+                      buttonMode="{model.useHandCursor}"
+                      mouseChildren="false"
+                      effectEnd="onEffectEnd()"
+                      width="{model.width}"
+                      height="{model.height}"/>
+    <s:HGroup height="100"
+              width="{txtTextArea.width}"
+              verticalAlign="middle"
+              horizontalAlign="center"
+              includeInLayout="{model.timeInterval != 0}"
+              visible="{model.timeInterval != 0}">
+        <mx:Image id="imgPrev"
+                  source="@Embed('assets/icons/lArrow.svg')"
+                  width="20"
+                  height="20"
+                  buttonMode="true"
+                  click="onButtonClick(event)"/>
+        <mx:Spacer width="20"/>
+        <s:Label text="{(model.currentLayerInd + 1) + ' of ' + model.textChain.length}"/>
+        <mx:Spacer width="20"/>
+        <mx:Image id="imgNext"
+                  source="@Embed('assets/icons/rArrow.svg')"
+                  buttonMode="true"
+                  width="20"
+                  height="20"
+                  click="onButtonClick(event)"/>
+    </s:HGroup>
+</s:VGroup>

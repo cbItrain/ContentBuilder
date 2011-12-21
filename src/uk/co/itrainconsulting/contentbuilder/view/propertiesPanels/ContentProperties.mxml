@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+         skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         borderVisible="false"
+         title="Content Properties"
+         creationComplete="cc()"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="400"
+         height="100%"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+    <fx:Script>
+        <![CDATA[
+			import mx.managers.PopUpManager;
+			
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.utils.MediaUploadManager;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.model.EnumImageBGType;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin;
+
+
+            [Bindable]
+            public var padding:Number=10;
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
+
+            private function cancel():void {
+                PopUpManager.removePopUp(this);
+            }
+            [Bindable]
+            private var bgImageUrl:Object="";
+
+            private function selectImage():void {
+                PopUpManager.addPopUp(il, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(il);
+                il.dispatcher=dispatcher;
+                il.refresh();
+            }
+
+            private function closeImageList():void {
+                PopUpManager.removePopUp(il);
+                PopUpManager.centerPopUp(this);
+            }
+
+            private function selectImageHandler(ao:AssetObject):void {
+                PopUpManager.removePopUp(il);
+                PopUpManager.centerPopUp(this);
+				
+				if (ao.fileReferenceW) {
+					MediaUploadManager.manageMedia(ao.fileReferenceW, this, "bgImageUrl");
+				} else {
+					bgImageUrl=ao.url;
+				}
+                //imagePreview.source=obj.url;
+                bgImageRG.selection=scaleRB;
+                bgImageUrl=ao.url;
+            }
+			
+
+            private function cc():void {
+                bgImageUrl=contentModel.contentProps.bgImage;
+                imagePreview.source=bgImageUrl;
+                switch (contentModel.contentProps.bgImageMethod) {
+                    case "repeat":
+                        bgImageRG.selection=tileRB;
+                        break;
+                    case "scale":
+                        bgImageRG.selection=scaleRB;
+                        break;
+                }
+            }
+
+            private function applyChanges():void {
+                contentModel.contentProps.title=titleInput.value;
+                contentModel.contentProps.bgColor=cp.selectedColor;
+                contentModel.contentProps.width=widthInput.value;
+                contentModel.contentProps.height=heightInput.value;
+                contentModel.contentProps.stageColors=[bgColPicker1.selectedColor, bgColPicker2.selectedColor];
+                contentModel.contentProps.hasBGImage=useImage.selected;
+                contentModel.contentProps.showSlideList=chbShowSlideList.selected;
+                if (useImage.selected && bgImageUrl) {
+                    contentModel.contentProps.bgImage=bgImageUrl;
+					if (bgImageUrl is ByteArray)
+						MediaUploadManager.switchModel(this, contentModel.contentProps, "bgImageUrl");
+                    if (bgImageRG.selection == tileRB)
+                        contentModel.contentProps.bgImageMethod=EnumImageBGType.REPEAT;
+                    else
+                        contentModel.contentProps.bgImageMethod=EnumImageBGType.SCALE;
+                    contentModel.contentProps.hasBGImage=true;
+                } else {
+                    contentModel.contentProps.bgImage="";
+                    contentModel.contentProps.bgImageMethod=null;
+                    contentModel.contentProps.hasBGImage=false;
+                }
+                switch (applyRG.selectedValue) {
+                    case 1: // just new slides
+                        contentModel.slides.removeDefaultsToExisting();
+                        break;
+                    case 2: // existing defaults
+                        contentModel.slides.applyDefaultsToExisting();
+                        break;
+                    case 3: // all slides
+                        contentModel.slides.applyDefaultsToAll();
+                        break;
+                }
+                PopUpManager.removePopUp(this);
+				dispatcher.dispatchEvent(new EditorEvent(EditorEvent.CONTENT_PROPERTIES_CHANGE, true));
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <view:MediaListNew id="il"
+                        mediaType="{EnumObjectType.IMAGE}"
+                        closeHandler="closeImageList"
+                        selectHandler="selectImageHandler"/>
+        <s:RadioButtonGroup id="bgImageRG"/>
+        <s:RadioButtonGroup id="applyRG"/>
+    </fx:Declarations>
+    <s:VGroup width="100%"
+              gap="10"
+              paddingBottom="{padding}"
+              paddingLeft="{padding}"
+              paddingRight="{padding}"
+              paddingTop="{padding}">
+        <!--<mx:Spacer height="5"/>-->
+        <view:LabelledTextInput id="titleInput"
+                                label="Title"
+                                value="{contentModel.contentProps.title}"
+                                width="100%"/>
+        <s:HGroup verticalAlign="middle">
+            <s:Label text="Stage Color:"/>
+            <mx:ColorPicker id="cp"
+                            selectedColor="{contentModel.contentProps.bgColor}"/>
+        </s:HGroup>
+        <s:Label text="Canvas Defaults"
+                 fontWeight="bold"
+                 fontSize="16"/>
+        <s:Label text="Dimensions"
+                 fontWeight="bold"/>
+        <s:Group width="100%">
+            <s:layout>
+                <s:TileLayout/>
+            </s:layout>
+            <view:LabeledNumStepper id="widthInput"
+                                    label="Width"
+                                    value="{contentModel.contentProps.width}"
+                                    width="100%"/>
+            <view:LabeledNumStepper id="heightInput"
+                                    label="Height"
+                                    value="{contentModel.contentProps.height}"
+                                    width="100%"/>
+        </s:Group>
+        <s:Label text="Background Gradient"
+                 fontWeight="bold"/>
+        <s:Group id="bgColorGroup"
+                 width="100%">
+            <s:layout>
+                <s:TileLayout/>
+            </s:layout>
+            <s:HGroup width="100%">
+                <s:Label text="Top"/>
+                <mx:ColorPicker id="bgColPicker1"
+                                selectedColor="{contentModel.contentProps.stageColors[0]}"/>
+            </s:HGroup>
+            <s:HGroup width="100%">
+                <s:Label text="Bottom"/>
+                <mx:ColorPicker id="bgColPicker2"
+                                selectedColor="{contentModel.contentProps.stageColors[1]}"/>
+            </s:HGroup>
+        </s:Group>
+        <s:Label text="Background Image"
+                 fontWeight="bold"/>
+        <s:CheckBox label="Use Image"
+                    selected="{contentModel.contentProps.hasBGImage}"
+                    id="useImage"/>
+        <s:VGroup id="bgImageGroup"
+                  width="100%"
+                  horizontalAlign="left"
+                  visible="{useImage.selected}"
+                  includeInLayout="{useImage.selected}">
+            <s:Button label="Select an image"
+                      click="selectImage()"/>
+            <s:HGroup width="100%"
+                      visible="{bgImageUrl != ''}"
+                      includeInLayout="{bgImageUrl != ''}">
+                <mx:Image id="imagePreview"
+                          maxWidth="100"
+                          maxHeight="100"
+                          maintainAspectRatio="true"/>
+                <s:VGroup width="100%">
+                    <s:RadioButton id="tileRB"
+                                   label="Tile image"
+                                   group="{bgImageRG}"
+                                   value="1"/>
+                    <s:RadioButton id="scaleRB"
+                                   label="Stretch image to fit"
+                                   group="{bgImageRG}"
+                                   value="2"/>
+                </s:VGroup>
+            </s:HGroup>
+        </s:VGroup>
+        <s:Label text="Apply defaults to"
+                 fontWeight="bold"/>
+        <s:VGroup width="100%">
+            <s:RadioButton id="newRB"
+                           label="All new slides"
+                           group="{applyRG}"
+                           value="1"
+                           selected="true"/>
+            <s:RadioButton id="existingRB"
+                           label="Existing slides that use defaults"
+                           group="{applyRG}"
+                           value="2"/>
+            <s:RadioButton id="allRB"
+                           label="All existing and new slides"
+                           group="{applyRG}"
+                           value="3"/>
+        </s:VGroup>
+        <s:Label text="Player settings"
+                 fontWeight="bold"
+                 fontSize="16"/>
+        <s:CheckBox id="chbShowSlideList"
+                    selected="{contentModel.contentProps.showSlideList}"
+                    label="Show slide list"/>
+    </s:VGroup>
+    <s:controlBarContent>
+        <s:HGroup width="100%"
+                  paddingBottom="2"
+                  paddingTop="2">
+            <mx:Spacer width="100%"/>
+            <s:Button label="Apply"
+                      click="applyChanges()"/>
+            <s:Button label="Cancel"
+                      click="cancel()"/>
+        </s:HGroup>
+    </s:controlBarContent>
+</s:Panel>

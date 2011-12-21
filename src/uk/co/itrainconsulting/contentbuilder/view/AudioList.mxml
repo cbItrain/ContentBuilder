@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" title="Audio Files"
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/halo" width="400" height="300">
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import org.swizframework.Swiz;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			
+			[Bindable]public var closeHandler:Function;
+			[Bindable]public var selectHandler:Function;
+			
+			[Inject] [Bindable] public var contentModel:ContentModel;
+			
+			public function refresh():void{
+				
+				loaderGraphic.visible = loaderGraphic.includeInLayout = true;
+				audioArray = new ArrayCollection();
+				var e:Event = new Event(ContentController.GET_AUDIO_LIST, true);
+				dispatchEvent(e);
+			}
+			[Mediate(event="audioListRetrieved")]
+			public function showList():void{
+				loaderGraphic.visible = loaderGraphic.includeInLayout = false;
+				audioList.labelField = "name";
+				audioArray = model.retrievedList;
+			}
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if (selectHandler != null)
+				{
+					selectHandler(audioList.selectedItem);
+				}
+			}
+			
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				if (closeHandler != null)
+					closeHandler();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	
+	<fx:Declarations>
+		<s:ArrayCollection id="audioArray">
+			<fx:String>assets/audio/Groove Armada.mp3</fx:String>
+			<fx:String>assets/audio/Youve Got The Love.mp3</fx:String>
+		</s:ArrayCollection>
+	</fx:Declarations>
+	<s:Button x="245" y="240" label="Select" click="button1_clickHandler(event)"/>
+	<s:Button x="322" y="240" label="Cancel" click="button2_clickHandler(event)"/>
+	<s:Group x="10" y="10" width="380" height="222" >
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+		<s:HGroup width="100%" height="100%">
+			<mx:Spacer width="100%" />
+			<s:VGroup width="100%" height="100%">
+				<mx:Spacer height="100%" />
+				<mx:SWFLoader id="loaderGraphic" source="@Embed('assets/basicBlackPreloader.swf')" width="100" height="100" />
+				<mx:Spacer height="100%" />
+			</s:VGroup>
+			<mx:Spacer width="100%" />
+		</s:HGroup>
+		<s:List id="audioList" width="100%" height="100%" dataProvider="{audioArray}" skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin"></s:List>
+	</s:Group>
+</s:Panel>

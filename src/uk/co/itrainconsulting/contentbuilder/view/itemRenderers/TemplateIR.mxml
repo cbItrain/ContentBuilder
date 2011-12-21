@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2009/09/29/displaying-images-in-a-spark-list-control-using-a-custom-item-renderer-in-flex-4/ -->
+<s:ItemRenderer name="CustomItemRenderer"
+				xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" toolTip="{data.name}"
+				xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+				>
+	<fx:Script>
+		<![CDATA[
+
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" />
+		<s:State name="selected" />
+	</s:states>
+	<s:Rect left="3" right="3" top="3" bottom="3">
+		
+		<s:fill>
+			<s:SolidColor color="0x000000"
+						  color.selected="0x2E97E5"
+						  alpha="0.3"
+						  alpha.hovered="0.5"
+						  alpha.selected="0.9"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000"
+								color.hovered="0x2E97E5"
+								color.selected="0x2E97E5"
+								alpha="0.1" alpha.hovered="1" alpha.selected="1"
+								weight="2" />
+		</s:stroke>
+	</s:Rect>
+	<s:VGroup left="5" right="5" top="5" bottom="5" >
+		<s:VGroup width="110" height="100" horizontalAlign="center" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3" gap="0">
+			
+			<s:HGroup height="94" verticalAlign="middle">
+				<view:SlideThumbnail width="100%" height="100%" slide="{this.data as Slide}" maxH="90" maxW="100"/>
+			</s:HGroup>
+			<!--<s:BitmapImage source="{data.preview_url}"  maxHeight="80" maxWidth="80" left="5" top="5" />-->
+		</s:VGroup>
+		<s:Group width="110">
+			<s:Rect left="0" right="0" top="0" bottom="0">
+				<s:fill>
+					<s:SolidColor color="0xffffff"
+								  alpha="1"/>
+				</s:fill>
+			</s:Rect>
+		<s:Label color="0x000000" id="labelField" text="{data.title}"
+			 maxDisplayedLines="1"
+			 width="100%"
+			 bottom="0"
+			 paddingLeft="3" paddingRight="3"
+			 paddingTop="5" paddingBottom="3"
+			 />
+		</s:Group>
+	</s:VGroup>
+</s:ItemRenderer>

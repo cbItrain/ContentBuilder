@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009"
+		   xmlns:s="library://ns.adobe.com/flex/spark"
+		   width="100%"
+		   height="100%"
+		   frameRate="60"
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   xmlns:control="uk.co.itrainconsulting.contentbuilder.control.*"
+		   xmlns:swiz="http://swiz.swizframework.org"
+		   xmlns:view="uk.co.itrainconsulting.contentviewer.view.*"
+		   xmlns:local="*"
+		   implements="uk.co.itrainconsulting.contentviewer.IContentPlayerInterface">
+	<fx:Style source="ContentBuilder.css"/>
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.events.ModelChange;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.swizframework.core.BeanProvider;
+			import org.swizframework.core.ISwiz;
+			import org.swizframework.core.SwizManager;
+			import org.swizframework.events.SwizEvent;
+			
+			import spark.components.Application;
+			import spark.components.Button;
+			
+			import uk.co.itrainconsulting.common.events.StateEvent;
+			import uk.co.itrainconsulting.content.common.model.ParamParser;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.ContentLoadedEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.IOErrEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.contentviewer.IContentPlayerInterface;
+			import uk.co.itrainconsulting.contentviewer.control.ContentViewController;
+			import uk.co.itrainconsulting.contentviewer.control.events.ContentViewLoadedEvent;
+			import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+			import uk.co.itrainconsulting.contentviewer.model.ViewParamParser;
+			import uk.co.itrainconsulting.contentviewer.model.ViewSlide;
+
+			
+			[Bindable] [Inject]
+			public var contentViewModel:ContentViewModel;
+
+			[Bindable]
+			private var topPadding:Number=42;
+			[Bindable]
+			private var mainPadding:Number=0;
+
+			[PostConstruct]
+			public function onCreationComplete():void
+			{
+				this.dispatchEvent(new StateEvent(StateEvent.STATE_EVENT_READY, true));
+			}
+
+			private function loadServiceResultHandler(event:ResultEvent):void
+			{
+				addContentToModel(event.result);
+			}
+
+			private function loadServiceFaultHandler(o:Object):void
+			{
+				trace('fault');
+			}
+
+			private function addContentToModel(contentObject:Object, currentSlideIndex:Number=-1):void
+			{
+				dispatchEvent(new ContentViewLoadedEvent(contentObject as XML, currentSlideIndex, true));
+			}
+
+
+			/////////////////////////////////////////////////////////////////////////
+
+			public function getSwiz():Swiz
+			{
+				return swizModule;
+			}
+
+			public function loadContent(sendParameters:Object, path:String = null):void
+			{
+				if (path)
+					loadService.url=path;
+				contentViewModel.reset();
+				loadService.send(sendParameters);
+			}
+
+			public function setNewContent(xml:XML, currentSlideIndex:Number=-1):void
+			{
+				contentViewModel.reset();
+				contentViewModel.singleSlideMode=currentSlideIndex != -1;
+				addContentToModel(xml, currentSlideIndex);
+			}
+
+			public function set contentProperties(value:Object):void
+			{
+				if (value.hasOwnProperty('bgColor'))
+					contentViewModel.contentProps.bgColor=value.bgColor;
+				if (value.hasOwnProperty('bgImage'))
+					contentViewModel.contentProps.bgImage=value.bgImage;
+				if (value.hasOwnProperty('bgImageMethod'))
+					contentViewModel.contentProps.bgImageMethod=value.bgImageMethod;
+				if (value.hasOwnProperty('hasBGImage'))
+					contentViewModel.contentProps.hasBGImage=value.hasBGImage;
+				if (value.hasOwnProperty('height'))
+					contentViewModel.contentProps.height=value.height;
+				if (value.hasOwnProperty('showSlideList'))
+					contentViewModel.showSlideList=value.showSlideList;
+				if (value.hasOwnProperty('stageColors'))
+					contentViewModel.contentProps.stageColors=value.stageColors;
+				if (value.hasOwnProperty('width'))
+					contentViewModel.contentProps.title=value.width;
+			}
+
+			public function get contentProperties():Object
+			{
+				return contentViewModel.contentProps;
+			}
+
+			//IExternalInterfaceAwareApplication methods
+			
+			public function setAllowScaling(value:Boolean):void {
+				contentViewModel.allowScaling = value;
+			}
+			
+			public function setGaps(top:Number = NaN, right:Number = NaN, bottom:Number = NaN, left:Number = NaN):void {
+				contentViewModel.topGap = top;
+				contentViewModel.bottomGap = bottom;
+				contentViewModel.rightGap = right;
+				contentViewModel.leftGap = left;
+			}
+
+			public function showSlideAt(index:int):void
+			{
+				if (index > -1 && contentViewModel.slides.slidesCount > index)
+				{
+					contentViewModel.preppingCanvas=index;
+					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+				}
+			}
+
+			public function showNextSlide():void
+			{
+				if (contentViewModel.slides.slidesCount)
+				{
+					contentViewModel.preppingCanvas=(contentViewModel.showingCanvas + 1) % contentViewModel.slides.slidesCount;
+					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+				}
+			}
+
+			public function showPreviousSlide():void
+			{
+				if (contentViewModel.slides.slidesCount)
+				{
+					contentViewModel.preppingCanvas=(contentViewModel.showingCanvas == 0) ? contentViewModel.slides.slidesCount - 1 : contentViewModel.showingCanvas - 1;
+					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+				}
+			}
+			
+			public function showFirstSlide():void
+			{
+				if (contentViewModel.slides.slidesCount)
+				{
+					contentViewModel.preppingCanvas=0;
+					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+				}
+			}
+			
+			public function showLastSlide():void
+			{
+				if (contentViewModel.slides.slidesCount)
+				{
+					contentViewModel.preppingCanvas=contentViewModel.slides.slidesCount - 1;
+					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+				}
+			}
+			
+			public function getSlidesCount():int
+			{
+				return contentViewModel.slides.slidesCount;
+			}
+			
+			public function getCurrentSlideIndex():int {
+				return contentViewModel.showingCanvas;
+			}
+			
+			public function getSlidesBasicData():Array {
+				var result:Array = [];
+				for each (var s:ViewSlide in contentViewModel.slides.getAll()) {
+					result.push({title: s.title});
+				}
+				return result;
+			}
+			
+			public function changeShowSlideList(show:Boolean):void {
+				contentViewModel.showSlideList = show;
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:HTTPService id="loadService"
+					   url=""
+					   method="POST"
+					   resultFormat="e4x"
+					   result="loadServiceResultHandler(event);"
+					   fault="loadServiceFaultHandler(event);"/>
+
+		<swiz:Swiz id="swizModule">
+
+			<!-- BeanProviders simply contain the non-display objects that Swiz should process. -->
+			<swiz:beanProviders>
+				<local:BeansPlayer/>
+			</swiz:beanProviders>
+
+			<swiz:config>
+				<!-- The eventPackages value tells Swiz the path to your Event classes,
+				and viewPackages is an optional value that speeds up the processing of display classes. -->
+				<swiz:SwizConfig setUpEventType="{ Event.ADDED}"
+								 eventPackages="uk.co.itrainconsulting.contentviewer.control.events"
+								 viewPackages="uk.co.itrainconsulting.contentviewer.view"/>
+			</swiz:config>
+
+		</swiz:Swiz>
+	</fx:Declarations>
+
+	<s:Group id="mainGroup"
+			 width="100%"
+			 height="100%">
+		<s:layout>
+			<s:BasicLayout/>
+		</s:layout>
+		<view:Background width="100%"
+						 height="100%"/>
+
+		<view:ContentPlayer id="contentPlayer"
+							x="0"
+							y="0"
+							width="100%"
+							height="100%"/>
+	</s:Group>
+</mx:Module>

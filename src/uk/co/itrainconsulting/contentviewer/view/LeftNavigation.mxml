@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark" skinClass="uk.co.itrainconsulting.contentviewer.view.skins.LeftPanelSkin"
+		 xmlns:mx="library://ns.adobe.com/flex/halo" width="100%" height="100%">
+	<fx:Script>
+		<![CDATA[
+			
+			import spark.events.IndexChangeEvent;
+			
+			import uk.co.itrainconsulting.contentviewer.control.ContentViewController;
+			import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+			import uk.co.itrainconsulting.contentviewer.model.ViewSlide;
+			import uk.co.itrainconsulting.contentviewer.view.skins.ClearListSkin;
+			import uk.co.itrainconsulting.contentviewer.view.skins.LeftPanelSkin;
+			
+			[Inject] [Bindable] public var contentViewModel:ContentViewModel;
+			
+			public function init():void{
+				//
+			}
+			private function canvasSelected(e:IndexChangeEvent):void{
+				var selected:ViewSlide = canvasList.selectedItem as ViewSlide;
+				selected.hasBeenVisited = true;
+				prepNewCanvas();
+			}
+			[Mediate(event="prepSlide")]
+			public function prepSlide():void{
+				canvasList.selectedIndex = contentViewModel.preppingCanvas;
+				var selected:ViewSlide = contentViewModel.slides.getSlideAt(contentViewModel.preppingCanvas) as ViewSlide;
+				selected.hasBeenVisited = true;
+			}
+			private function prepNewCanvas():void{
+				contentViewModel.preppingCanvas = canvasList.selectedIndex;
+				dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+			}
+
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:layout>
+		<s:VerticalLayout gap="0" />
+	</s:layout>
+	<s:Group width="100%">
+		<s:Rect top="0" left="0" right="0" bottom="0" >
+			<s:fill>
+				<s:LinearGradient rotation="90">
+					<s:entries>
+						<s:GradientEntry ratio="0" color="0xB2B2B2" alpha="1"/>
+						<s:GradientEntry ratio="0.1" color="0xDCDCDC" alpha="1"/>
+						<s:GradientEntry ratio="1" color="0xCACACA" alpha="1"/>
+					</s:entries>
+				</s:LinearGradient>
+			</s:fill>            
+		</s:Rect>
+		<s:VGroup width="100%" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="15">
+			<s:Label width="100%" text="{contentViewModel.contentProps.title}" fontSize="14" />
+		</s:VGroup>
+	</s:Group>
+	<s:List id="canvasList"
+			width="100%" height="100%" dataProvider="{contentViewModel.slides.getAll()}" change="canvasSelected(event)"
+			itemRenderer="uk.co.itrainconsulting.contentviewer.view.itemRenderers.NavListItemRenderer"
+			skinClass="uk.co.itrainconsulting.contentviewer.view.skins.ClearListSkin"/>
+</s:SkinnableContainer>

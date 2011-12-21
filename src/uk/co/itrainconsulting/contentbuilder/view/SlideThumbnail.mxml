@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         height="100%"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         mouseChildren="false">
+    <fx:Script>
+        <![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.controls.TextArea;
+			import mx.events.PropertyChangeEvent;
+			
+			import spark.components.VideoPlayer;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.NewMediaEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.AudioPlayer;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableButton;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableText;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableVideo;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.CustomVideoPlayerSkin;
+
+            [Bindable]
+            public var maxW:int=165;
+            [Bindable]
+            public var maxH:int=120;
+
+            [Bindable]
+            public var textBackgroudColor:int=-1;
+
+            public var objectsLookup:Dictionary=new Dictionary();
+            public var viewsLookup:Dictionary=new Dictionary();
+
+            private var _slide:Slide;
+
+            [Bindable]
+            public function get slide():Slide {
+                return _slide;
+            }
+
+            private function addShape(sm:ShapeMedia):void {
+                var srs:SimpleResizableShape=new SimpleResizableShape(sm);
+                holder.addChild(srs as DisplayObject);
+                objectsLookup[srs]=sm;
+                viewsLookup[sm]=srs;
+
+            }
+
+            private function addButton(bm:ButtonMedia):void {
+                var srb:SimpleResizableButton=new SimpleResizableButton(bm);
+                objectsLookup[srb]=bm;
+                viewsLookup[bm]=srb;
+                holder.addChild(srb);
+            }
+
+
+
+            private function addImage(im:ImageMedia):void {
+                var sri:SimpleResizableImage=new SimpleResizableImage(im);
+				sri.maintainAspectRatio=false;
+				sri.smoothBitmapContent=true;
+                holder.addChild(sri);
+                sri.mouseChildren=false;
+                objectsLookup[sri]=im;
+                viewsLookup[im]=sri;
+            }
+
+            public function set slide(val:Slide):void {
+                _slide=val;
+                this.width=slide.width;
+                this.height=slide.height;
+
+                var scalar:Number=maxW / this.width;
+                if (this.height * scalar > maxH)
+                    scalar=maxH / this.height;
+
+                this.scaleX=this.scaleY=scalar;
+                updateLayout();
+            }
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Mediate(event="stopPlayback")]
+            public function stopPlayback():void {
+                for (var i:int=0, ix:int=holder.numElements; i < ix; i++) {
+                    if (holder.getElementAt(i) is VideoPlayer)
+                        (holder.getElementAt(i) as VideoPlayer).stop();
+                }
+            }
+
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
+                if (slide) {
+                    var changed:Boolean=false;
+                    this.width=slide.width;
+                    this.height=slide.height;
+                    var scalar:Number=maxW / this.width;
+                    if (this.height * scalar > maxH)
+                        scalar=maxH / this.height;
+                    this.scaleX=this.scaleY=scalar;
+                    if (unscaledWidth != this.width || unscaledHeight != this.height)
+                        changed=true;
+                    super.updateDisplayList(unscaledWidth, unscaledHeight);
+                    if (changed)
+                        dispatchEvent(new Event("dimensionsChanged", true));
+                } else {
+                    super.updateDisplayList(unscaledWidth, unscaledHeight);
+                }
+            }
+
+            [Mediate(event="EditorEvent.MEDIA_ADDED")]
+			[Mediate(event="EditorEvent.MEDIA_DELETED")]
+			[Mediate(event="EditorEvent.MEDIA_REORDERED")]
+            public function canvasUpdated(ee:EditorEvent):void {
+                if (slide == ee.slide) {
+                    updateLayout();
+                }
+            }
+
+            private function addText(tm:TextMedia):void {
+				var srt:SimpleResizableText = new SimpleResizableText(tm)
+                holder.addChild(srt);
+                objectsLookup[srt]=tm;
+                viewsLookup[tm]=srt;
+            }
+
+
+            private function addVideo(vm:VideoMedia):void {
+				var srv:SimpleResizableVideo = new SimpleResizableVideo(vm);
+                holder.addChild(srv);
+                objectsLookup[srv]=vm;
+                viewsLookup[vm]=srv;
+            }
+
+            private function addAudio(am:AudioMedia):void {
+                var ap:AudioPlayer=new AudioPlayer(am);
+                holder.addChild(ap as DisplayObject);
+                objectsLookup[ap]=am;
+                viewsLookup[am]=ap;
+            }
+
+
+
+            private function updateLayout():void {
+                holder.removeAllElements();
+                var currObjs:ArrayCollection=slide.stageObjects;
+                for (var j:int=currObjs.length - 1, jx:int=0; j >= jx; j--) {
+					var mo:MediaObject = currObjs.getItemAt(j) as MediaObject;
+                    if (mo is ImageMedia)
+                        addImage(mo as ImageMedia)
+                    else if (mo is TextMedia)
+                        addText(mo as TextMedia)
+                    else if (mo is VideoMedia)
+                        addVideo(mo as VideoMedia)
+                    else if (mo is AudioMedia)
+                        addAudio(mo as AudioMedia)
+                    else if (mo is ShapeMedia)
+                        addShape(mo as ShapeMedia)
+                    else if (mo is ButtonMedia)
+                        addButton(mo as ButtonMedia)
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:DropShadowFilter id="dsf1"
+                            color="0x000000"
+                            blurX="3"
+                            blurY="3"
+                            distance="2"
+                            quality="3"
+                            alpha="0.3"
+                            angle="90"/>
+    </fx:Declarations>
+    <s:Group height="{slide.height}"
+             width="{slide.width}"
+             verticalCenter="0"
+             horizontalCenter="0">
+        <s:Rect filters="{[dsf1]}"
+                width="100%"
+                height="100%">
+            <s:fill>
+                <s:LinearGradient rotation="90">
+                    <s:entries>
+                        <mx:GradientEntry id="gradCol1"
+                                          color="{slide.bgCol1}"/>
+                        <mx:GradientEntry id="gradCol2"
+                                          color="{slide.bgCol2}"/>
+                    </s:entries>
+                </s:LinearGradient>
+            </s:fill>
+        </s:Rect>
+        <view:BitmapRect width="100%"
+                         height="100%"
+                         imgUrl="{slide.bgImage}"
+                         scaleMode="{slide.bgImageMethod}"/>
+        <mx:Canvas width="100%"
+                   height="100%"
+                   id="holder"
+                   verticalScrollPolicy="off"
+                   horizontalScrollPolicy="off"
+                   backgroundColor="0x000000"
+                   backgroundAlpha="0"
+                   mouseEnabled="false"
+                   mouseChildren="true"/>
+    </s:Group>
+</s:Group>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/halo"
+         width="100%"
+         height="100%"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*">
+    <fx:Script>
+        <![CDATA[
+            import mx.managers.PopUpManager;
+
+            import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.AudioPlayer;
+
+            private var newAudioMode:Boolean;
+
+            [Bindable]
+            public var padding:Number=10;
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
+
+            private function changeAudio(ev:Event=null):void {
+                var am:AudioPlayer=contentModel.selectedResizableObject as AudioPlayer;
+                newAudioMode=!ev;
+                PopUpManager.addPopUp(audioList, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(audioList);
+                audioList.dispatcher=dispatcher;
+                audioList.refresh();
+            }
+
+            [Mediate(event="EditorEvent.ADD_MEDIA", priority="0")]
+            public function newAudio(ee:EditorEvent):void {
+                if (ee.media == null) {
+                    var type:EnumObjectType=ee.additionalData as EnumObjectType;
+                    if (type.equals(EnumObjectType.AUDIO)) {
+                        changeAudio();
+                    }
+                }
+            }
+
+            private function closeAudioList():void {
+                PopUpManager.removePopUp(audioList);
+                if (newAudioMode)
+                    dispatchEvent(new EditorEvent(EditorEvent.DELETE_MEDIA, true));
+            }
+
+            private function selectAudioHandler(obj:Object):void {
+                var am:AudioMedia=asAM(contentModel.selectedResizableObject.model);
+                am.displayName=obj.name;
+                am.url=obj.url;
+                PopUpManager.removePopUp(audioList);
+            }
+
+            private function applyChanges():void {
+                var am:AudioMedia=asAM(contentModel.selectedResizableObject.model);
+                am.autoPlay=autoplayCB.selected;
+                am.loop=loopCB.selected;
+                am.muted=muteCB.selected;
+            }
+
+            private function asAM(mo:MediaObject):AudioMedia {
+                return mo as AudioMedia;
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <view:MediaListNew id="audioList"
+                           mediaType="{EnumObjectType.AUDIO}"
+                           closeHandler="closeAudioList"
+                           selectHandler="selectAudioHandler"/>
+    </fx:Declarations>
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <pp:PropertiesTitle title="Audio Properties"
+                            icon="@Embed('assets/icons/music.png')"/>
+        <s:VGroup width="100%"
+                  gap="10"
+                  horizontalAlign="left"
+                  paddingBottom="{padding}"
+                  paddingLeft="{padding}"
+                  paddingRight="{padding}"
+                  paddingTop="{padding}">
+
+            <pp:LayoutProperties model="{asAM(contentModel.selectedResizableObject.model)}"
+                                 width="100%"
+                                 enableRotation="false"/>
+
+            <s:Label text="Source"
+                     fontWeight="bold"/>
+            <s:Label text="Audio file: {asAM(contentModel.selectedResizableObject.model) == null ? 'No audio selected' : asAM(contentModel.selectedResizableObject.model).displayName}"/>
+            <s:Button label="Select Audio File"
+                      click="changeAudio(event)"/>
+            <s:Label text="Playback Options"
+                     fontWeight="bold"/>
+            <s:CheckBox label="Auto-Play"
+                        id="autoplayCB"
+                        selected="{asAM(contentModel.selectedResizableObject.model).autoPlay}"
+                        change="applyChanges()"/>
+            <s:CheckBox label="Loop"
+                        id="loopCB"
+                        selected="{asAM(contentModel.selectedResizableObject.model).loop}"
+                        change="applyChanges()"/>
+            <s:CheckBox label="Mute"
+                        id="muteCB"
+                        selected="{asAM(contentModel.selectedResizableObject.model).muted}"
+                        change="applyChanges()"/>
+        </s:VGroup>
+    </s:VGroup>
+</s:Group>

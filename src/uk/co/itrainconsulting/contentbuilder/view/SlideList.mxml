@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/halo"
+	skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.LeftSidePanelSkin"
+	creationComplete="onCreationComplete()">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.DragEvent;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.skins.spark.DefaultItemRenderer;
+			
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideListItemRenderer;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.LeftSidePanelSkin;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin;
+			
+			[Inject] [Bindable] public var contentModel:ContentModel;
+			
+			[Bindable] public var padding:Number = 0;
+			
+			private function onCreationComplete():void {
+				slideSelected();
+				slideList.addEventListener(IndexChangeEvent.CHANGE, slideSelected);
+			}
+			
+			private function initList():void{
+				slideList.addEventListener("duplicate", duplicateHandler);
+				slideList.addEventListener("delete", deleteHandler);
+			}
+			private function duplicateHandler(e:Event):void{
+				var de:Event = new Event(ContentController.DUPLICATE_SLIDE, true);
+				dispatchEvent(de);
+			}
+			private function deleteHandler(e:Event):void{
+				var ee:EditorEvent = new EditorEvent(EditorEvent.DELETE_SLIDE, true);
+				dispatchEvent(ee);
+			}
+			
+			[Mediate(event="slideSelected")]
+			public function slideSelected(e:Event = null):void{
+				if (e is IndexChangeEvent || e == null) {
+					if (contentModel.slides.slidesCount){
+						var index:int = (e != null) ? (e as IndexChangeEvent).newIndex : slideList.selectedIndex;
+						var se:SlideEvent = new SlideEvent(ContentController.SLIDE_SELECTED, index == -1 ? null : Slide(contentModel.slides.getSlideAt(index)),true);
+						dispatchEvent(se);
+					}
+				} else if (e is SlideEvent && e.target != this){
+					slideList.removeEventListener(IndexChangeEvent.CHANGE, slideSelected);
+					slideList.selectedItem = (e as SlideEvent).slide;
+					slideList.addEventListener(IndexChangeEvent.CHANGE, slideSelected);
+				}
+			}
+			
+			[Mediate(event="EditorEvent.SLIDES_REMOVED_SILENTLY")]
+			[Mediate(event="EditorEvent.SLIDE_DELETED")]
+			public function canvasDeleted(ee:EditorEvent):void
+			{
+				var numSlides:int = contentModel.slides.slidesCount; 
+				if (numSlides != 0)
+				{
+					if (ee.additionalData <= 0)
+						slideList.selectedIndex = 0;
+					else if (ee.additionalData >= numSlides - 1)
+						slideList.selectedIndex = numSlides - 1;
+					else 
+						slideList.selectedIndex = ee.additionalData as int;
+					slideSelected();
+				}
+			}
+			[Mediate(event="slideAdded",properties="slide", priority="5")]
+			public function slideAdded(slide:Slide):void
+			{
+				slideList.selectedIndex = contentModel.slides.getSlideIndex(slide);
+				contentModel.selectedSlide = slide;
+				var se:SlideEvent = new SlideEvent(ContentController.SLIDE_SELECTED,contentModel.selectedSlide, true);
+				dispatchEvent(se);
+			}
+			[Mediate(event="EditorEvent.RESELECT_SLIDE")]
+			public function reselectSlide(ee:EditorEvent):void
+			{
+				slideList.selectedIndex = contentModel.slides.getSlideIndex(contentModel.selectedSlide);
+			}
+			
+			[Mediate(event="ContentBuiltEvent.CONTENT_BUILT")]
+			public function onContentLoaded():void {
+				callLater(function ():void {
+					slideList.selectedIndex = 0;	
+					slideSelected();
+				});
+			}
+			
+			private function onDragDrop(e:DragEvent):void {
+				if (e.ctrlKey){
+					e.stopImmediatePropagation();
+					var slide:Slide = e.dragSource.dataForFormat("itemsByIndex")[0] as Slide;
+					var newSlide:Slide = contentModel.slides.addSlideAt(slide.generateXML(contentModel.contentProps), slideList.layout.calculateDropLocation(e).dropIndex );		
+					var se:SlideEvent = new SlideEvent(ContentController.SLIDE_ADDED, newSlide, true);
+					
+					slideList.layout.hideDropIndicator();
+					slideList.destroyDropIndicator();
+					
+					slideList.drawFocus(false);
+					
+					dispatchEvent(se);
+				}
+			}
+			
+			private function onDragComplete(e:DragEvent):void {
+				contentModel.slides.getAll().refresh();
+				slideSelected();
+				dispatchEvent(new EditorEvent(EditorEvent.ENABLE_PROPERTY_CHANGE_TRACKING, true));
+			}
+			
+			private function onDragStart(e:DragEvent):void {
+				dispatchEvent(new EditorEvent(EditorEvent.DISABLE_PROPERTY_CHANGE_TRACKING, true));
+			}
+			
+		]]>
+	</fx:Script>
+	<s:layout>
+		<s:HorizontalLayout gap="0" paddingLeft="{padding}" paddingRight="{padding}" paddingBottom="{padding}"/>
+	</s:layout>
+	<s:List id="slideList" height="100%" width="100%"
+			creationComplete="initList()" dataProvider="{contentModel.slides.getAll()}"
+			dragEnabled="true"
+			dragMoveEnabled="true"
+			dropEnabled="true"
+			dragStart="onDragStart(event)"
+			dragComplete="onDragComplete(event)"
+			useVirtualLayout="true"
+			skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin"
+			itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideListItemRenderer" />
+
+</s:SkinnableContainer>

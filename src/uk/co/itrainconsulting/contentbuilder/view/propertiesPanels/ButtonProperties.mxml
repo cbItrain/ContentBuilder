@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         height="100%"
+         xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         xmlns:colourpick="uk.co.itrainconsulting.components.colourpick.*">
+    <fx:Script>
+        <![CDATA[
+            import mx.binding.utils.BindingUtils;
+            import mx.binding.utils.ChangeWatcher;
+            import mx.controls.Menu;
+            import mx.events.MenuEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.IconButtonBarSkin;
+
+
+            [Bindable]
+            public var padding:Number=10;
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            private function applyChanges():void {
+                var m:ButtonMedia=asBM(contentModel.selectedResizableObject.model);
+                m.label=txtLabel.value;
+                m.fontSize=fontSizePicker.value;
+                m.fontColour=uint(fontColPicker.colour);
+                m.colour=uint(buttonColPicker.colour);
+                m.cornerRadius=cornerRadiusPicker.value;
+                m.alpha=alphaSlider.value;
+                m.labelAlpha=labelAlphaSlider.value;
+            }
+
+            private function asBM(mo:MediaObject):ButtonMedia {
+                return mo as ButtonMedia;
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <s:RadioButtonGroup id="fillTypeRG"
+                            change="applyChanges()"/>
+    </fx:Declarations>
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <pp:PropertiesTitle title="Button Properties"
+                            icon="@Embed('assets/icons/layer-select.png')"/>
+        <s:SkinnableContainer skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin"
+                              width="100%"
+                              height="100%">
+            <s:VGroup width="100%"
+                      gap="10"
+                      horizontalAlign="left"
+                      paddingBottom="{padding}"
+                      paddingLeft="{padding}"
+                      paddingRight="{padding}"
+                      paddingTop="{padding}">
+
+                <pp:LayoutProperties model="{asBM(contentModel.selectedResizableObject.model)}"
+                                     width="100%"/>
+
+                <mx:Spacer height="5"/>
+
+                <s:Label text="Label"
+                         fontWeight="bold"/>
+
+                <view:LabelledTextInput id="txtLabel"
+                                        label="Button Label"
+                                        value="{asBM(contentModel.selectedResizableObject.model).label}"
+                                        width="100%"
+                                        change="applyChanges()"/>
+                <s:HGroup width="100%"
+                          verticalAlign="middle">
+                    <s:Label text="Font Colour"/>
+                    <colourpick:ColourPick id="fontColPicker"
+                                           selected="applyChanges()"
+                                           colour="{asBM(contentModel.selectedResizableObject.model).fontColour}"/>
+                    <view:LabeledNumStepper textAlign="right"
+                                            labelWidth="60"
+                                            id="fontSizePicker"
+                                            label="Font Size"
+                                            value="{asBM(contentModel.selectedResizableObject.model).fontSize}"
+                                            min="0"
+                                            max="200"
+                                            width="100%"
+                                            change="applyChanges()"/>
+                </s:HGroup>
+
+                <s:HGroup width="100%">
+                    <s:Label width="60"
+                             text="Label Alpha"/>
+                    <s:HSlider id="labelAlphaSlider"
+                               width="100%"
+                               snapInterval="0"
+                               maximum="1"
+                               minimum="0"
+                               stepSize="0.1"
+                               value="{asBM(contentModel.selectedResizableObject.model).labelAlpha}"
+                               change="applyChanges()"
+                               slideDuration="0"
+                               liveDragging="true"/>
+                </s:HGroup>
+
+                <mx:Spacer height="5"/>
+
+                <s:Label text="Button Properties"
+                         fontWeight="bold"/>
+
+                <s:Group width="100%">
+                    <s:layout>
+                        <s:TileLayout/>
+                    </s:layout>
+                    <s:HGroup width="100%"
+                              verticalAlign="middle">
+                        <s:Label text="Colour"/>
+                        <colourpick:ColourPick id="buttonColPicker"
+                                               selected="applyChanges()"
+                                               colour="{asBM(contentModel.selectedResizableObject.model).colour}"/>
+                    </s:HGroup>
+                    <view:LabeledNumStepper textAlign="right"
+                                            labelWidth="60"
+                                            id="cornerRadiusPicker"
+                                            label="Corner Radius"
+                                            value="{asBM(contentModel.selectedResizableObject.model).cornerRadius}"
+                                            min="0"
+                                            max="200"
+                                            width="100%"
+                                            change="applyChanges()"/>
+                </s:Group>
+
+                <s:HGroup width="100%">
+                    <s:Label width="60"
+                             text="Alpha"/>
+                    <s:HSlider id="alphaSlider"
+                               width="100%"
+                               snapInterval="0"
+                               maximum="1"
+                               minimum="0"
+                               stepSize="0.1"
+                               value="{asBM(contentModel.selectedResizableObject.model).alpha}"
+                               change="applyChanges()"
+                               slideDuration="0"
+                               liveDragging="true"/>
+                </s:HGroup>
+
+
+                <mx:Spacer height="5"/>
+
+                <pp:NavigationProperties width="100%"
+                                         model="{asBM(contentModel.selectedResizableObject.model)}"/>
+
+            </s:VGroup>
+        </s:SkinnableContainer>
+    </s:VGroup>
+</s:Group>

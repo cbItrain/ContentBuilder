@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         creationComplete="init()"
+         xmlns:propertiesPanels="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*">
+    <fx:Script>
+        <![CDATA[
+            import mx.events.DynamicEvent;
+            import mx.managers.PopUpManager;
+
+            import spark.events.IndexChangeEvent;
+
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
+            import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.contentbuilder.model.EnumBGType;
+            import uk.co.itrainconsulting.contentbuilder.model.EnumImageBGType;
+            import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.common.model.Slide;
+            import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+            import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideObjectItemRenderer;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
+
+            [Bindable]
+            public var padding:Number=10;
+
+            private function init():void {
+            }
+
+            protected function applyChanges():void {
+                var s:Slide=contentModel.selectedSlide;
+                s.title=titleInput.value;
+                s.width=widthInput.value;
+                s.height=heightInput.value;
+                s.bgCol1=bgColPicker1.selectedColor;
+                s.bgCol2=bgColPicker2.selectedColor;
+            }
+
+            private function toggleCustomDimensions():void {
+                var s:Slide=contentModel.selectedSlide;
+                if (defaultDimensionsCB.selected) {
+                    widthInput.value=s.width=contentModel.contentProps.width;
+                    heightInput.value=s.height=contentModel.contentProps.height;
+                    s.customDimensions=false;
+                } else {
+                    s.width=widthInput.value;
+                    s.height=heightInput.value;
+                    widthInput.enabled=true;
+                    heightInput.enabled=true;
+                    s.customDimensions=true;
+                }
+            }
+
+            private function bgTypeChange():void {
+                var s:Slide=contentModel.selectedSlide;
+                switch (bgSelector.selection.value) {
+                    case 1: // default
+                        s.backgroundType=EnumBGType.DEFAULT;
+                        s.bgCol1=contentModel.contentProps.stageColors[0];
+                        s.bgCol2=contentModel.contentProps.stageColors[1];
+                        if (contentModel.contentProps.hasBGImage) {
+                            s.imageBGShowing=true;
+                            s.bgImage=contentModel.contentProps.bgImage;
+                            s.bgImageMethod=contentModel.contentProps.bgImageMethod;
+                        } else {
+                            s.imageBGShowing=false;
+                        }
+                        s.customBackground=false;
+                        bgImageGroup.visible=bgImageGroup.includeInLayout=false;
+                        break;
+                    case 2: // colours
+                        s.backgroundType=EnumBGType.GRADIENT;
+                        s.imageBGShowing=false;
+                        s.customBackground=true;
+                        bgColPicker1.selectedColor=s.bgCol1;
+                        bgColPicker2.selectedColor=s.bgCol2;
+                        bgImageUrl='';
+                        bgImageGroup.visible=bgImageGroup.includeInLayout=false;
+                        break;
+                    case 3: // image
+                        bgImageUrl='';
+                        s.customBackground=true;
+                        bgImageGroup.visible=bgImageGroup.includeInLayout=true;
+                        contentModel.selectedSlide.bgImageMethod=EnumImageBGType.REPEAT;
+                        //bgSelector.selection = bgRad1;
+                        bgImageRG.selection=tileRB;
+                        break;
+                }
+            }
+
+            private function bgImageChange():void {
+                var s:Slide=contentModel.selectedSlide;
+                switch (bgImageRG.selection.value) {
+                    case 1: // tile
+                        contentModel.selectedSlide.bgImageMethod=EnumImageBGType.REPEAT;
+                        break;
+                    case 2: // stretch
+                        contentModel.selectedSlide.bgImageMethod=EnumImageBGType.SCALE;
+                        break;
+                }
+            }
+
+            private function selectImage():void {
+                PopUpManager.addPopUp(imageList, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(imageList);
+                imageList.dispatcher=dispatcher;
+                imageList.refresh();
+            }
+
+            private function closeImageList():void {
+                PopUpManager.removePopUp(imageList);
+            }
+            [Bindable]
+            private var bgImageUrl:Object="";
+
+            private function selectImageHandler(ao:AssetObject):void {
+                var s:Slide=contentModel.selectedSlide;
+                s.backgroundType=EnumBGType.IMAGE;
+                PopUpManager.removePopUp(imageList);
+                s.imageBGShowing=true;
+                imagePreview.source=ao.url;
+                bgImageUrl=ao.url;
+                s.bgImage=ao.url;
+            }
+
+
+            [Mediate(event="newCanvasFromTemp")]
+            public function newCanvasFromTemp():void {
+
+            }
+
+
+            [Mediate(event="slideSelected", properties="slide")]
+            public function slideChanged(s:Slide):void {
+                if (s) {
+                    defaultDimensionsCB.selected=!s.customDimensions;
+                    if (!s.customBackground) {
+                        bgSelector.selection=bgRad1;
+                        bgImageGroup.visible=bgImageGroup.includeInLayout=false;
+                    } else if (s.backgroundType.equals(EnumBGType.GRADIENT)) {
+                        bgSelector.selection=bgRad2;
+                        bgImageGroup.visible=bgImageGroup.includeInLayout=false;
+                    } else {
+                        bgSelector.selection=bgRad3;
+                        bgImageUrl=s.bgImage;
+                        imagePreview.source=bgImageUrl;
+                        bgImageGroup.visible=bgImageGroup.includeInLayout=true;
+                        if (s.bgImageMethod.equals(EnumImageBGType.SCALE))
+                            bgImageRG.selection=scaleRB;
+                        else
+                            bgImageRG.selection=tileRB;
+                    }
+
+                    SlideObjectItemRenderer.slideWidth=contentModel.selectedSlide.width;
+                    SlideObjectItemRenderer.slideHeight=contentModel.selectedSlide.height;
+                }
+            }
+
+            //to do mkit
+
+            [Mediate(event="showTemplates")]
+            public function newCanvasTemplate(ev:Event):void {
+                PopUpManager.addPopUp(templateList, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(templateList);
+                templateList.dispatcher=dispatcher;
+                templateList.refresh();
+            }
+
+            private function closeTemplateList():void {
+                PopUpManager.removePopUp(templateList);
+            }
+
+            private function selectTemplateHandler(o:Object):void {
+                var se:SlideEvent=new SlideEvent(ContentController.NEW_SLIDE_FROM_TEMP, o as Slide, true);
+                dispatchEvent(se);
+                closeTemplateList();
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <s:RadioButtonGroup id="bgSelector"
+                            change="bgTypeChange()"/>
+        <s:RadioButtonGroup id="bgImageRG"
+                            change="bgImageChange()"/>
+        <view:MediaListNew id="imageList"
+                           mediaType="{EnumObjectType.IMAGE}"
+                           closeHandler="closeImageList"
+                           selectHandler="selectImageHandler"
+                           uploadEnabled="false"/>
+        <view:TemplatePanel id="templateList"
+                            closeHandler="closeTemplateList"
+                            selectHandler="selectTemplateHandler"/>
+    </fx:Declarations>
+
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <propertiesPanels:PropertiesTitle title="Slide Properties"
+                                          icon="@Embed('assets/icons/slide.png')"/>
+        <s:SkinnableContainer skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin"
+                              width="100%"
+                              height="100%">
+
+            <s:VGroup width="100%"
+                      gap="10"
+                      paddingBottom="{padding}"
+                      paddingLeft="{padding}"
+                      paddingRight="{padding}"
+                      paddingTop="{padding}">
+                <view:LabelledTextInput id="titleInput"
+                                        label="Title"
+                                        value="{contentModel.selectedSlide.title}"
+                                        width="100%"
+                                        change="applyChanges()"/>
+                <s:Label text="Dimensions"
+                         fontWeight="bold"/>
+                <s:CheckBox label="Use defaults"
+                            id="defaultDimensionsCB"
+                            selected="{!contentModel.selectedSlide.customDimensions || contentModel.selectedSlide.fromTemplate}"
+                            enabled="{!contentModel.selectedSlide.fromTemplate}"
+                            change="toggleCustomDimensions()"/>
+                <s:Group width="100%">
+                    <s:layout>
+                        <s:TileLayout/>
+                    </s:layout>
+                    <view:LabeledNumStepper id="widthInput"
+                                            labelWidth="50"
+                                            enabled="{!defaultDimensionsCB.selected &amp;&amp; !contentModel.selectedSlide.fromTemplate}"
+                                            label="Width"
+                                            value="{contentModel.selectedSlide.width}"
+                                            width="100%"
+                                            change="applyChanges()"/>
+                    <view:LabeledNumStepper id="heightInput"
+                                            enabled="{!defaultDimensionsCB.selected &amp;&amp; !contentModel.selectedSlide.fromTemplate}"
+                                            label="Height"
+                                            labelWidth="50"
+                                            value="{contentModel.selectedSlide.height}"
+                                            width="100%"
+                                            change="applyChanges()"/>
+                </s:Group>
+                <s:Label text="Background"
+                         fontWeight="bold"/>
+                <s:Group width="100%">
+                    <s:layout>
+                        <s:TileLayout/>
+                    </s:layout>
+                    <s:RadioButton label="Default"
+                                   id="bgRad1"
+                                   value="1"
+                                   group="{bgSelector}"
+                                   selected="{contentModel.selectedSlide.backgroundType.equals(EnumBGType.DEFAULT)}"/>
+                    <s:RadioButton label="Gradient"
+                                   id="bgRad2"
+                                   value="2"
+                                   group="{bgSelector}"
+                                   selected="{contentModel.selectedSlide.backgroundType.equals(EnumBGType.GRADIENT)}"/>
+                    <s:RadioButton label="Image"
+                                   id="bgRad3"
+                                   value="3"
+                                   group="{bgSelector}"
+                                   selected="{contentModel.selectedSlide.backgroundType.equals(EnumBGType.IMAGE)}"/>
+                </s:Group>
+                <s:Group id="bgColorGroup"
+                         width="100%"
+                         visible="{bgColorGroup.includeInLayout}"
+                         includeInLayout="{contentModel.selectedSlide.backgroundType.equals(EnumBGType.IMAGE) || contentModel.selectedSlide.backgroundType.equals(EnumBGType.GRADIENT)}">
+                    <s:layout>
+                        <s:TileLayout/>
+                    </s:layout>
+                    <s:HGroup width="100%">
+                        <s:Label text="Top"/>
+                        <mx:ColorPicker id="bgColPicker1"
+                                        change="applyChanges()"
+                                        selectedColor="{contentModel.selectedSlide.bgCol1}"/>
+                    </s:HGroup>
+                    <s:HGroup width="100%">
+                        <s:Label text="Bottom"/>
+                        <mx:ColorPicker id="bgColPicker2"
+                                        change="applyChanges()"
+                                        selectedColor="{contentModel.selectedSlide.bgCol2}"/>
+                    </s:HGroup>
+                </s:Group>
+                <s:VGroup id="bgImageGroup"
+                          width="100%"
+                          horizontalAlign="left"
+                          visible="false"
+                          includeInLayout="false">
+                    <s:Button label="Select an image"
+                              click="selectImage()"/>
+                    <s:HGroup width="100%"
+                              visible="{bgImageUrl != ''}"
+                              includeInLayout="{bgImageUrl != ''}">
+                        <mx:Image id="imagePreview"
+                                  maxWidth="100"
+                                  maxHeight="100"
+                                  maintainAspectRatio="true"/>
+                        <s:VGroup width="100%">
+                            <s:RadioButton id="tileRB"
+                                           label="Tile image"
+                                           group="{bgImageRG}"
+                                           value="1"/>
+                            <s:RadioButton id="scaleRB"
+                                           label="Stretch image to fit"
+                                           group="{bgImageRG}"
+                                           value="2"/>
+                        </s:VGroup>
+                    </s:HGroup>
+                </s:VGroup>
+            </s:VGroup>
+        </s:SkinnableContainer>
+    </s:VGroup>
+</s:Group>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:List xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		width="250"
+		maxHeight="600"
+		itemRenderer="{new ClassFactory(UploadQueueItemRenderer)}"
+		addedToStage="onAddedToStage()"
+		removedFromStage="onRemoveFromStage()"
+		filters="{[new DropShadowFilter(7.0, 45, 0, .3, 8.0, 8.0)]}"
+		mouseDown="onMouseDown(event)"
+		click="onMouseClick(event)"
+		contentBackgroundColor="#F8F8F8">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.DynamicEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.filters.DropShadowFilter;
+			
+			import uk.co.itrainconsulting.contentbuilder.model.UploadBean;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			
+			[Dispatcher] public var dispatcher:IEventDispatcher;
+			
+			[Bindable]
+			public var closeHandler:Function;
+			
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.UploadQueueItemRenderer;
+			
+			private function onAddedToStage():void {
+				this.systemManager.addEventListener(MouseEvent.MOUSE_DOWN, onOutsideMouseDown);
+				fadeIn.stop();
+				fadeOut.stop();
+				fadeIn.play();
+			}
+			
+			private function onRemoveFromStage():void {
+				this.systemManager.removeEventListener(MouseEvent.MOUSE_DOWN, onOutsideMouseDown);
+			}
+			
+			private function onOutsideMouseDown(e:MouseEvent):void {
+				if (closeHandler != null) {
+					fadeIn.stop();
+					fadeOut.stop();
+					fadeOut.play();
+				}
+			}
+			
+			private function onMouseDown(e:MouseEvent):void {
+				e.stopImmediatePropagation();
+			}
+			
+			private function onFadeOutEnd():void {
+				closeHandler();
+			}
+			
+			private function onMouseClick(e:MouseEvent):void {
+				if (e.target is SlideListButton) {
+					var frw:FileReferenceWrapper = ((e.target as SlideListButton).parentDocument as UploadQueueItemRenderer).data as FileReferenceWrapper;
+					var de:DynamicEvent = new DynamicEvent(UploadBean.REMOVE_FILE_FROM_QUEUE, true);
+					de.fileReferenceWrapper = frw;
+					dispatcher.dispatchEvent(de);
+					
+					if (dataProvider.length == 0)
+						closeHandler();
+				}
+			}
+			
+			[Mediate(event="UploadBeanUploadComplete")]
+			public function onUploadComplete():void {
+				closeHandler();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="400" target="{this}"/>
+		<s:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="400" target="{this}" effectEnd="onFadeOutEnd()"/>
+	</fx:Declarations>
+	<s:layout>
+		<s:VerticalLayout paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"/>
+	</s:layout>
+</s:List>

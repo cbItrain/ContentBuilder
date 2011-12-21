@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+		 xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.graphics.codec.PNGEncoder;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.Slide;
+			
+			[Bindable] public var contentModel:ContentModel;
+			
+			[Mediate(event="exportCanvas", priority="0")]
+			public function exportCanvas():void
+			{
+				var bitmapData:BitmapData = new BitmapData(editor.width, editor.height);
+				//var m:Matrix = new Matrix();
+				//m.ty = -0.5*(this.height-model.selectedSlide.height);
+				//bitmapData.draw(drawableCanvas,m);
+				bitmapData.draw(editor,new Matrix());
+				var bitmap : Bitmap = new Bitmap(bitmapData);
+				var png:PNGEncoder = new PNGEncoder();
+				var ba:ByteArray = png.encode(bitmapData);
+				var file:FileReference = new FileReference();				
+				file.save(ba,"Export.png");
+				file.addEventListener(Event.COMPLETE, onExportComplete);
+				file.addEventListener(Event.CANCEL, onExportComplete);
+			}
+			
+			private function onExportComplete(ev:Event):void {
+				dispatchEvent(new Event(ContentController.EXPORT_CANVAS_COMPLETED,true));
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:DropShadowFilter id="dsf1" color="0x000000" blurX="3" blurY="3" distance="2" quality="3" alpha="0.3" angle="90"/>
+	</fx:Declarations>
+	
+	<view:ObjectHandlesCanvas 	id="editor" x="0" y="{0.5*(this.height-contentModel.selectedSlide.height)}"
+								height="{contentModel.selectedSlide.height}" width="{contentModel.selectedSlide.width}"
+								contentModel="{contentModel}"  />
+</s:Group>

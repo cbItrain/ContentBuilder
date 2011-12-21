@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				initialize="onInitialize()"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				title="Uploading Files"
+				layout="vertical">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.managers.PopUpManager;
+			
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.events.FileUploadEvent;
+
+			private var _addFileReferenceList:FileReferenceList=new FileReferenceList();
+			private var _uploadQueue:ArrayCollection=new ArrayCollection();
+			private var _totalSizeToUpload:int=0;
+			private var _totalUploadedSize:int=0;
+
+			[Bindable]
+			private var _loadQueue:ArrayCollection=new ArrayCollection();
+			
+			[Bindable]
+			private var _mainFileReferenceList:ArrayCollection=new ArrayCollection();
+
+			private function onInitialize():void
+			{
+				_addFileReferenceList.addEventListener(Event.SELECT, onFileSelection);
+				_uploadQueue.addEventListener(CollectionEvent.COLLECTION_CHANGE, onUploadQueueChange);
+			}
+
+			private function onFileSelection(e:Event):void
+			{
+				var toAdd:ArrayCollection=new ArrayCollection();
+				var fileReferenceWrapper:FileReferenceWrapper;
+				for each (var fr:FileReference in _addFileReferenceList.fileList) {
+					fileReferenceWrapper = new FileReferenceWrapper(fr);
+					toAdd.addItem(fileReferenceWrapper);
+				}
+				_loadQueue.addAll(toAdd);
+				_mainFileReferenceList.addAll(toAdd);
+				_uploadQueue.addAll(toAdd);
+				for each (var frw:FileReferenceWrapper in toAdd) {
+					frw.addEventListener(FileUploadEvent.LOADING_COMPLETE, onFileLoadingComplete);
+					frw.load();
+				}
+			}
+			
+			private function onFileLoadingComplete(e:FileUploadEvent):void {
+				var frw:FileReferenceWrapper = e.target as FileReferenceWrapper;
+				frw.removeEventListener(FileUploadEvent.LOADING_COMPLETE, onFileLoadingComplete);
+				_loadQueue.removeItemAt(_loadQueue.getItemIndex(frw));
+			}
+
+			private function onAddClick():void
+			{
+				var frl:FileReferenceList=new FileReferenceList();
+				clearFileReferenceList(_addFileReferenceList);
+				_addFileReferenceList.browse();
+			}
+
+			private function onUploadQueueChange(e:CollectionEvent):void
+			{
+				if (e.kind == CollectionEventKind.ADD)
+				{
+					_totalSizeToUpload+=getTotalSize(e.items);
+				}
+			}
+
+			private function addEventListeners(frw:FileReferenceWrapper):void
+			{
+				if (frw)
+				{
+					frw.addEventListener(FileUploadEvent.UPLOADING_PROGRESS, onUploadProgress);
+					frw.addEventListener(FileUploadEvent.UPLOADING_COMPLETE, onUploadComplete);
+				}
+			}
+
+			private function removeEventListeners(frw:FileReferenceWrapper):void
+			{
+				if (frw)
+				{
+					frw.removeEventListener(FileUploadEvent.UPLOADING_PROGRESS, onUploadProgress);
+					frw.removeEventListener(FileUploadEvent.UPLOADING_COMPLETE, onUploadComplete);
+				}
+			}
+
+			private function onUploadProgress(e:FileUploadEvent):void
+			{
+			}
+
+			private function onUploadComplete(e:FileUploadEvent):void
+			{
+				var fileReferenceWrapper:FileReferenceWrapper = e.target as FileReferenceWrapper;
+				_totalSizeToUpload-=fileReferenceWrapper.size;
+				_totalUploadedSize+=fileReferenceWrapper.size;
+				_uploadQueue.removeItemAt(_uploadQueue.getItemIndex(fileReferenceWrapper));
+				removeEventListeners(fileReferenceWrapper);
+			}
+
+			private function uploadQueue():void
+			{
+				if (_uploadQueue.length)
+				{
+					for each (var frw:FileReferenceWrapper in _uploadQueue) {
+						addEventListeners(frw);
+						frw.upload();
+					}
+				}
+			}
+
+			private function getTotalSize(fileReferences:Array):int
+			{
+				var result:int=0;
+				for each (var fr:FileReferenceWrapper in fileReferences)
+					result+=fr.size;
+				return result;
+			}
+
+			private function onUploadClick():void
+			{
+				uploadQueue();
+			}
+
+			private function clearFileReferenceList(frl:FileReferenceList):void
+			{
+				if (frl.fileList)
+				{
+					while (frl.fileList.length)
+						frl.fileList.pop();
+				}
+			}
+
+			private function onCancelClick():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+
+			public function show():void
+			{
+				_totalSizeToUpload=0;
+				_totalUploadedSize=0;
+				PopUpManager.addPopUp(this, FlexGlobals.topLevelApplication as DisplayObject);
+				PopUpManager.centerPopUp(this);
+			}
+
+			public function isInQueue(frw:FileReferenceWrapper):Boolean
+			{
+				return _uploadQueue.contains(frw);
+			}
+		]]>
+	</fx:Script>
+	<mx:DataGrid id="dGridFiles"
+				 dataProvider="{_mainFileReferenceList}">
+		<mx:columns>
+			<mx:DataGridColumn id="colFileName"
+							   dataField="name"/>
+			<mx:DataGridColumn id="colFileType"
+							   dataField="type"/>
+			<mx:DataGridColumn id="colFileSize"
+							   dataField="size"/>
+			<mx:DataGridColumn id="colFileStatus"
+							   itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.FileUploadStatusRenderer"
+							   dataField="status"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ProgressBar id="progressBar"
+					width="100%"
+					minimum="0"
+					maximum="100"/>
+	<s:HGroup width="100%"
+			  verticalAlign="middle"
+			  horizontalAlign="right">
+		<s:Button label="Upload"
+				  enabled="{_loadQueue.length == 0}"
+				  click="onUploadClick()"/>
+		<s:Button label="Add"
+				  click="onAddClick()"/>
+		<s:Button label="Cancel"
+				  click="onCancelClick()"/>
+	</s:HGroup>
+</mx:TitleWindow>

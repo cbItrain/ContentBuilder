@@ -1,0 +1,192 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/halo";
+@namespace flexlib "com.flexlib.*";
+
+@font-face {
+	src:url("assets/fonts/MyriadPro-Regular.otf");
+	fontFamily: CFFMyriad;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-Bold.otf");
+	fontFamily: CFFMyriad;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src:url("assets/fonts/MyriadPro-It.otf");
+	fontFamily: CFFMyriad;
+	fontStyle: italic;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src:url("assets/fonts/MyriadPro-BoldIt.otf");
+	fontFamily: CFFMyriad;
+	fontStyle: italic;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-Regular.otf");
+	fontFamily: NoCFFMyriad;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-Bold.otf");
+	fontFamily: NoCFFMyriad;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-It.otf");
+	fontFamily: NoCFFMyriad;
+	fontStyle: italic;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-BoldIt.otf");
+	fontFamily: NoCFFMyriad;
+	fontStyle: italic;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+
+@font-face {
+	src:url("assets/fonts/ACaslonPro-Regular.otf");
+	fontFamily: ACaslonPro;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+@font-face {
+	src:url("assets/fonts/ACaslonPro-Bold.otf");
+	fontFamily: ACaslonPro;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+@font-face {
+	src:url("assets/fonts/ACaslonPro-Italic.otf");
+	fontFamily: ACaslonPro;
+	fontStyle: italic;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+@font-face {
+	src:url("assets/fonts/ACaslonPro-BoldItalic.otf");
+	fontFamily: ACaslonPro;
+	fontStyle: italic;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: false;
+}
+
+flexlib|Docker
+{
+	dockingAreaStyleName: "dockingArea";
+	rowStyleName: "dockingRow";
+}
+
+flexlib|DockableToolBar
+{
+	borderStyle: none;
+	horizontalGap: 2;
+	paddingBottom: 5;
+	paddingLeft: 0;
+	paddingRight: 8;
+	paddingTop: 5;
+}	
+
+.dockingArea
+{
+	horizontalScrollPolicy: "off";
+	verticalGap: 0;
+	paddingLeft: 5;
+	borderStyle: "applicationControlBar";
+	dropShadowEnabled: true;	
+	borderStyle: none;
+	fill-color: #FFFFFF, #000000;
+}
+
+.dockingRow
+{
+	horizontalGap: 1;
+}
+
+
+
+
+s|Label, s|TextInput{
+	fontFamily: CFFMyriad;	
+}
+mx|TextArea,  s|TextInput {
+	fontFamily: Arial, Helvetica, sans-serif;
+}
+global
+{
+	fontFamily: NoCFFMyriad;
+	drop-shadow-visible: false;
+}
+mx|ToolTip {
+	background-color:#FFFFFF;
+	radius:2px;
+	font-size:13px;
+	color:#000000;
+}
+
+mx|RichTextEditor {
+	dropShadowEnabled:false;
+}
+
+mx|TabNavigator {
+	tabStyleName: "tabs";
+	firstTabStyleName: "tabs";
+	lastTabStyleName: "tabs";
+}
+
+.tabs {
+	cornerRadius: 5;
+	borderColor: #B4B4B4;
+}
+
+.messageBig {
+	fontWeight: bold;
+	fontSize: 16;
+	color: #FFFFFF;
+}
+
+.messageSmall {
+	fontWeight: bold;
+	fontSize: 14;
+	color: #FFFFFF;
+}
+
+.hint {
+	color: #FFFFFF;
+}
+/*global
+{
+	verticalAlign: middle;
+	font-family: embeddedMyriadNoCFF;
+}
+s|Label {
+	font-family: embeddedMyriad;
+}
+mx|TextArea {
+	font-family:'arial, helvetica, tahoma';
+	color:#000000;
+}
+mx|ComboBox {
+	font-family:'arial, helvetica, tahoma';
+	color:#000000;
+}*/

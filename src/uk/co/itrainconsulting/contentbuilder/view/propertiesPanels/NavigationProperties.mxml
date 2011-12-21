@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+		  creationComplete="onCreationComplete()">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.events.PropertyChangeEvent;
+			
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			
+			[Bindable] private var _model:MediaObject;
+			
+			[Inject] public var contentModel:ContentModel;
+			
+			private var changeWatcher:ChangeWatcher;
+				
+			private function onCreationComplete():void {
+				builtSlideIndexes();
+			}
+			
+			[Bindable]
+			public function set model(value:MediaObject):void {
+				_model = value;
+				if (changeWatcher)
+					changeWatcher.unwatch();
+				if (_model) {
+					changeWatcher = ChangeWatcher.watch(_model, 'slideToGo', setSlideToGoCMB);
+					setSlideToGoCMB(_model.slideToGo);
+				}
+			}
+			
+			public function get model():MediaObject {
+				return _model;
+			}
+			
+			private function setURLToGo():void {
+				model.urlToGo = txtUrl.value;
+			}
+			
+			private function setUseHandCursor():void {
+				model.useHandCursor = chbHandCursor.selected;
+			}
+			
+			private function setSlideToGoCMB(newValue:int):void {
+				switch (model.slideToGo) {
+					case -1: cmbSlideNumber.selectedIndex = 0; break;
+					case -10: cmbSlideNumber.selectedIndex = 1; break;
+					case -20: cmbSlideNumber.selectedIndex = 2; break;
+					case -11: cmbSlideNumber.selectedIndex = 3; break;
+					case -12: cmbSlideNumber.selectedIndex = 4; break;
+					default : for each (var o:Object in cmbSlideNumber.dataProvider) {
+						if (o.hasOwnProperty('index') && o.index == model.slideToGo + 1) {
+							cmbSlideNumber.selectedItem = o;
+							break;
+						}
+					};
+				}
+			}
+			
+			private function updateSlideToGoCMB(ev:PropertyChangeEvent):void {
+				setSlideToGoCMB(ev.newValue as int);
+			}
+			
+			private function slideToGoChange():void {
+				switch (cmbSlideNumber.selectedIndex) {
+					case 0: model.slideToGo = -1; break;
+					case 1: model.slideToGo = -10; break;
+					case 2: model.slideToGo = -20; break;
+					case 3: model.slideToGo = -11; break;
+					case 4: model.slideToGo = -12; break;
+					default : model.slideToGo = cmbSlideNumber.selectedItem.index - 1;
+				}
+			}
+			
+			private function onRBClick(ev:Event):void {
+				if (ev.target == rbGoToSlide)	
+					txtUrl.value = model.urlToGo = "";
+				model.slideToGo = -1;
+			}
+			
+			[Mediate(event="navigationUpdated")]
+			[Mediate(event="slideSelected")]
+			public function builtSlideIndexes():void {
+				var arrayOfSlides: Array = [];
+				var i:int = 1;
+				arrayOfSlides.push("No selection");
+				arrayOfSlides.push("First");
+				arrayOfSlides.push("Last");
+				arrayOfSlides.push("Previous");
+				arrayOfSlides.push("Next");
+				for each (var slide:Slide in contentModel.slides.getAll()) {
+					arrayOfSlides.push({index:i, label:i + ' ' + slide.title});
+					i++;
+				}
+				if (contentModel.selectedSlide)
+					arrayOfSlides.splice((contentModel.slides.getSlideIndex(contentModel.selectedSlide) + 5),1);
+				cmbSlideNumber.dataProvider = new ArrayCollection(arrayOfSlides);
+				if (model)
+					setSlideToGoCMB(model.slideToGo);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Label text="Reference" fontWeight="bold" />
+	
+	<s:HGroup width="100%" verticalAlign="middle"  >
+		<s:RadioButton id="rbGoToSlide" label="Go To Slide" selected="{!model.urlToGo}" click="onRBClick(event)"/>
+		<s:RadioButton id="rbGoToUrl" label="Open URL" selected="{!rbGoToSlide.selected}" click="onRBClick(event)"/>
+	</s:HGroup>
+	
+	<s:HGroup width="100%" verticalAlign="middle" visible="{rbGoToSlide.selected}" includeInLayout="{rbGoToSlide.selected}">
+		<s:Label text="Slide" />
+		<s:DropDownList id="cmbSlideNumber" change="slideToGoChange()"/>
+	</s:HGroup>
+	
+	<view:LabelledTextInput id="txtUrl" label="URL" width="100%" value="{model.urlToGo}" change="setURLToGo()" visible="{rbGoToUrl.selected}" includeInLayout="{rbGoToUrl.selected}"/>
+	
+	<s:CheckBox id="chbHandCursor" label="Use Hand Cursor" selected="{model.useHandCursor}" change="setUseHandCursor()"/>
+</s:VGroup>

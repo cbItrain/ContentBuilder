@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                      xmlns:s="library://ns.adobe.com/flex/spark"
+                      xmlns:mx="library://ns.adobe.com/flex/mx"
+                      skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.RightSidePanelSkin"
+                      xmlns:props="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*">
+    <fx:Script>
+        <![CDATA[
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideListItemRenderer;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.RightSidePanelSkin;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin;
+
+            [Bindable]
+            public var padding:Number=0;
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            private function onCreationComplete():void {
+
+            }
+        ]]>
+    </fx:Script>
+
+    <s:layout>
+        <s:VerticalLayout gap="0"
+                          paddingLeft="{padding}"
+                          paddingRight="{padding}"
+                          paddingBottom="{padding}"/>
+    </s:layout>
+
+    <props:SlideProperties id="spSlide"
+                           width="100%"
+                           height="100%"
+                           visible="{spSlide.includeInLayout}"
+                           includeInLayout="{contentModel.selectedType.equals(EnumObjectType.SLIDE)}"/>
+    <props:ImageProperties id="spImage"
+                           width="100%"
+                           height="100%"
+                           visible="{spImage.includeInLayout}"
+                           includeInLayout="{contentModel.selectedType.equals(EnumObjectType.IMAGE)}"/>
+    <props:TextProperties id="spText"
+                          width="100%"
+                          height="100%"
+                          visible="{spText.includeInLayout}"
+                          includeInLayout="{contentModel.selectedType.equals(EnumObjectType.TEXT)}"/>
+    <props:VideoProperties id="spVideo"
+                           width="100%"
+                           height="100%"
+                           visible="{spVideo.includeInLayout}"
+                           includeInLayout="{contentModel.selectedType.equals(EnumObjectType.VIDEO)}"/>
+    <props:AudioProperties id="spAudio"
+                           width="100%"
+                           height="100%"
+                           visible="{spAudio.includeInLayout}"
+                           includeInLayout="{contentModel.selectedType.equals(EnumObjectType.AUDIO)}"/>
+    <props:ShapeProperties id="spShape"
+                           width="100%"
+                           height="100%"
+                           visible="{spShape.includeInLayout}"
+                           includeInLayout="{contentModel.selectedType.equals(EnumObjectType.SHAPE)}"/>
+    <props:ButtonProperties id="spButton"
+                            width="100%"
+                            height="100%"
+                            visible="{spButton.includeInLayout}"
+                            includeInLayout="{contentModel.selectedType.equals(EnumObjectType.BUTTON)}"/>
+</s:SkinnableContainer>

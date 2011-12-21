@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         height="100%"
+         creationComplete="onCreationComplete()"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+    <fx:Script>
+
+        <![CDATA[
+            import com.objecthandles.HandleDescription;
+            import com.objecthandles.HandleRoles;
+            import com.objecthandles.IHandle;
+            import com.objecthandles.ObjectHandles;
+            import com.objecthandles.SelectionEvent;
+            
+            import mx.binding.utils.BindingUtils;
+            import mx.binding.utils.ChangeWatcher;
+            import mx.collections.ArrayCollection;
+            import mx.containers.Box;
+            import mx.controls.TextArea;
+            import mx.core.IVisualElement;
+            import mx.core.UIComponent;
+            import mx.events.PropertyChangeEvent;
+            
+            import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.common.model.EnumShapeType;
+            import uk.co.itrainconsulting.common.model.Slide;
+            import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+            import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+            import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
+            import uk.co.itrainconsulting.common.utils.Embeded;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.AudioPlayer;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.IModelAware;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableButton;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableText;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableVideo;
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
+            import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+            import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.contentbuilder.model.NavigationModel;
+            import uk.co.itrainconsulting.handles.HandleFactory;
+
+
+
+            protected var objectHandles:ObjectHandles;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Inject]
+            [Bindable]
+            public var navigationModel:NavigationModel;
+
+            private var lastSelectedObjects:Array=[];
+            private var stageObjects:Array=new Array();
+            private var objectsLookup:Dictionary=new Dictionary();
+            private var handles:Array;
+            private var lineHandles:Array;
+            private var _textEditorHandles:Array;
+
+            private function onCreationComplete():void {
+                objectHandles=new ObjectHandles(holder, null, new HandleFactory());
+                objectHandles.moveCursor=Embeded.CURSOR_MOVE;
+                contentModel.addEventListener(ClearSelectionEvent.CLEAR_SELECTION, clearSelection);
+                objectHandles.selectionManager.addEventListener(SelectionEvent.ADDED_TO_SELECTION, selectedHandler);
+                lineHandles=[];
+                lineHandles.push(new HandleDescription(HandleRoles.RESIZE_RIGHT, new Point(100, 50), new Point(), new HandleFactory()));
+                lineHandles.push(new HandleDescription(HandleRoles.RESIZE_LEFT, new Point(0, 50), new Point(), new HandleFactory()));
+                lineHandles.push(new HandleDescription(HandleRoles.ROTATE, new Point(50, 0), new Point(0, 20), new HandleFactory()));
+
+                _textEditorHandles=objectHandles.defaultHandles.concat();
+                _textEditorHandles.push(new HandleDescription(HandleRoles.MOVE, new Point(50, 50), new Point(0, 0)));
+            }
+
+            private function clearSelection(e:Event=null):void {
+                lastSelectedShape=null;
+                if (contentModel.selectedType && contentModel.selectedType.equals(EnumObjectType.TEXT))
+                    (contentModel.selectedResizableObject as SimpleResizableText).clearSelection();
+                objectHandles.selectionManager.clearSelection();
+                contentModel.selectedType=EnumObjectType.SLIDE;
+                holder.setFocus();
+            }
+
+            [Mediate(event="slideSelected", priority="1")]
+            [Mediate(event="clearSelection")]
+            public function clearSelected():void {
+                clearSelection(null)
+            }
+
+            [Mediate(event="commitCanvasDelete")]
+            public function commitCanvasDelete():void {
+                if (contentModel.selectedSlide) {
+                    holder.removeAllChildren();
+                    var se:SlideEvent=new SlideEvent(ContentController.SLIDE_SELECTED, contentModel.selectedSlide, true);
+                    dispatchEvent(se);
+                }
+            }
+
+            [Mediate(event="mediaForwards")]
+            public function mediaForwards():void {
+                var currI:int=getCurrentIndex();
+                var totalItems:int=holder.numChildren;
+                if (currI < totalItems - 1)
+                    holder.addElementAt(holder.removeElementAt(currI), currI + 1);
+
+            }
+
+            [Mediate(event="mediaBackwards")]
+            public function mediaBackwards():void {
+                var currI:int=getCurrentIndex();
+                var totalItems:int=holder.numChildren;
+                if (currI > 0)
+                    holder.addElementAt(holder.removeElementAt(currI), currI - 1);
+
+            }
+
+            [Mediate(event="EditorEvent.MEDIA_REORDERED")]
+            public function reorderMedia(ev:EditorEvent):void {
+				if (ev.slide == contentModel.selectedSlide) {
+	                for each (var o:Object in holder.getChildren()) {
+	                    if (o.hasOwnProperty('model') && o.model == ev.media) {
+	                        var oldIndex:int=holder.getChildIndex(o as DisplayObject);
+	                        var newIndex:int=holder.getChildren().length - contentModel.selectedSlide.stageObjects.getItemIndex(ev.media) - 1;
+	                        holder.addElementAt(holder.removeElementAt(oldIndex), newIndex);
+	                        break;
+	                    }
+	                }
+				}
+            }
+
+            [Mediate(event="mediaToFront")]
+            public function mediaToFront():void {
+                var currI:int=getCurrentIndex();
+                var totalItems:int=holder.numChildren;
+                holder.addElementAt(holder.removeElementAt(currI), totalItems - 1);
+            }
+
+            [Mediate(event="mediaToBack")]
+            public function mediaToBack():void {
+                var currI:int=getCurrentIndex();
+                var totalItems:int=holder.numChildren;
+                holder.addElementAt(holder.removeElementAt(currI), 0);
+            }
+
+            private function getCurrentIndex():int {
+                var currI:int=holder.getElementIndex(contentModel.selectedResizableObject as IVisualElement);
+                return currI;
+            }
+
+            [Mediate(event="EditorEvent.MEDIA_DELETED")]
+            public function onMediaDeleted(ee:EditorEvent):void {
+                if (ee.slide == contentModel.selectedSlide) {
+                    if (contentModel.selectedResizableObject.model == ee.media)
+                        clearSelection();
+                    var sro:IVisualElement=objectsLookup[ee.media] as IVisualElement;
+                    if (sro is AudioPlayer)
+                        (sro as AudioPlayer).stopSound();
+                    else if (sro is SimpleResizableVideo)
+                        (sro as SimpleResizableVideo).stop();
+                    if (sro) {
+                        holder.removeElement(sro);
+                    }
+                }
+            }
+
+            private function selectedHandler(e:SelectionEvent):void {
+                if (contentModel.selectedType.equals(EnumObjectType.TEXT))
+                    (contentModel.selectedResizableObject as SimpleResizableText).clearSelection();
+                var modelObject:MediaObject=e.targets[0] as MediaObject;
+                var stageObject:Object=objectsLookup[modelObject];
+
+                contentModel.selectedResizableObject=stageObject as IModelAware;
+                contentModel.selectedType=modelObject.mediaType;
+                if (!(stageObject is SimpleResizableShape)) {
+                    lastSelectedShape=null;
+                }
+                dispatchEvent(new Event(ContentController.MEDIA_SELECTED, true));
+            }
+
+            private function addImage(im:ImageMedia):IVisualElement {
+                var sri:SimpleResizableImage=new SimpleResizableImage(im);
+                navigationModel.addMediaObject(im);
+                sri.maintainAspectRatio=false;
+                sri.smoothBitmapContent=true;
+                holder.addChild(sri);
+                objectHandles.registerComponent(im, sri);
+                return sri;
+            }
+
+            private function addVideo(vm:VideoMedia):IVisualElement {
+                var srv:SimpleResizableVideo=new SimpleResizableVideo(vm);
+                holder.addChild(srv);
+                objectHandles.registerComponent(vm, srv);
+                return srv;
+            }
+
+            private function addText(tm:TextMedia):IVisualElement {
+                var srt:SimpleResizableText=new SimpleResizableText(tm);
+                navigationModel.addMediaObject(tm);
+                holder.addChild(srt);
+                objectHandles.registerComponent(tm, srt, _textEditorHandles);
+                return srt;
+            }
+
+            public function addAudio(am:AudioMedia):IVisualElement {
+                var ap:AudioPlayer=new AudioPlayer(am);
+                ap.editorMode=true;
+                holder.addElement(ap);
+                handles=objectHandles.defaultHandles.concat();
+                handles.pop();
+                objectHandles.registerComponent(ap.model, ap, handles);
+                return ap;
+            }
+
+            public function addButton(bm:ButtonMedia):IVisualElement {
+                var srb:SimpleResizableButton=new SimpleResizableButton(bm);
+                holder.addElement(srb);
+                navigationModel.addMediaObject(bm);
+                objectHandles.registerComponent(bm, srb);
+                return srb;
+            }
+
+            public function addShape(sm:ShapeMedia):IVisualElement {
+                var srs:SimpleResizableShape=new SimpleResizableShape(sm);
+                holder.addChild(srs);
+                navigationModel.addMediaObject(sm);
+                if (sm.shapeType.equals(EnumShapeType.LINE))
+                    objectHandles.registerComponent(sm, srs, lineHandles);
+                else
+                    objectHandles.registerComponent(sm, srs, objectHandles.defaultHandles);
+                return srs;
+            }
+
+            [Mediate(event="exportCanvas", priority="1")]
+            public function exportCanvas():void {
+                lastSelectedObjects=objectHandles.selectionManager.currentlySelected;
+                objectHandles.selectionManager.clearSelection();
+            }
+
+            [Mediate(event="exportCanvasCompleted")]
+            public function exportCanvasCompleted():void {
+                for each (var o:Object in lastSelectedObjects)
+                    objectHandles.selectionManager.setSelected(o);
+            }
+
+            [Mediate(event="EditorEvent.MEDIA_ADDED")]
+            public function onMediaAdded(ee:EditorEvent):void {
+                if (ee.slide == contentModel.selectedSlide) {
+                    var ui:UIComponent;
+                    var mo:MediaObject=ee.media;
+                    var handles:Array;
+                    switch (mo.mediaType.ordinal) {
+                        case EnumObjectType.SHAPE.ordinal:
+                            ui=new SimpleResizableShape(mo as ShapeMedia);
+                            handles=lineHandles;
+                            break;
+                        case EnumObjectType.IMAGE.ordinal:
+                            ui=new SimpleResizableImage(mo as ImageMedia);
+                            (ui as SimpleResizableImage).maintainAspectRatio=false;
+                            (ui as SimpleResizableImage).smoothBitmapContent=true;
+                            break;
+                        case EnumObjectType.TEXT.ordinal:
+                            ui=new SimpleResizableText(mo as TextMedia);
+                            handles=_textEditorHandles;
+                            break;
+                        case EnumObjectType.BUTTON.ordinal:
+                            ui=new SimpleResizableButton(mo as ButtonMedia);
+                            break;
+                        case EnumObjectType.VIDEO.ordinal:
+                            ui=new SimpleResizableVideo(mo as VideoMedia);
+                            break;
+                        case EnumObjectType.AUDIO.ordinal:
+                            ui=new AudioPlayer(mo as AudioMedia);
+                            (ui as AudioPlayer).editorMode=true;
+                            handles=objectHandles.defaultHandles.concat();
+                            handles.pop();
+                            break;
+                    }
+                    if (mo && ui) {
+                        addToContainer(mo, ui, handles);
+                    }
+                }
+            }
+
+            private function addToContainer(mo:MediaObject, so:UIComponent, handles:Array=null):void {
+                holder.addChild(so);
+                objectHandles.registerComponent(mo, so, handles);
+                objectsLookup[mo]=so;
+                objectHandles.selectionManager.setSelected(mo);
+            }
+
+            private var lastSelectedShapeType:EnumShapeType;
+            private var lastSelectedShape:SimpleResizableShape;
+
+            [Mediate(event="selectedShapeIsLine")]
+            public function selectedShapeIsLine():void {
+                if (contentModel.selectedResizableObject != lastSelectedShape || !(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(lastSelectedShapeType)) {
+                    lastSelectedShapeType=(contentModel.selectedResizableObject.model as ShapeMedia).shapeType;
+                    lastSelectedShape=contentModel.selectedResizableObject as SimpleResizableShape;
+                    objectHandles.unregisterComponent(contentModel.selectedResizableObject as IEventDispatcher);
+                    objectHandles.registerComponent(contentModel.selectedResizableObject.model, contentModel.selectedResizableObject as IEventDispatcher, lineHandles);
+                    objectHandles.selectionManager.setSelected(contentModel.selectedResizableObject.model);
+                }
+            }
+
+            [Mediate(event="selectedShapeIsNotLine")]
+            public function selectedShapeIsNotLine():void {
+                if (contentModel.selectedResizableObject != lastSelectedShape || !(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(lastSelectedShapeType)) {
+                    lastSelectedShapeType=(contentModel.selectedResizableObject.model as ShapeMedia).shapeType;
+                    lastSelectedShape=contentModel.selectedResizableObject as SimpleResizableShape;
+                    objectHandles.unregisterComponent(contentModel.selectedResizableObject as IEventDispatcher);
+                    objectHandles.registerComponent(contentModel.selectedResizableObject.model, contentModel.selectedResizableObject as IEventDispatcher, objectHandles.defaultHandles);
+                    objectHandles.selectionManager.setSelected(contentModel.selectedResizableObject.model);
+                }
+            }
+
+            private function handlesContainRole(role:uint):Boolean {
+                for (var i:int=0; i < handles.length; i++) {
+                    if (handles[i].role == role) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            private function canvasClicked(e:MouseEvent):void {
+                if ((e.target == holder || (e.target.parent == holder && !(e.target is AudioPlayer) && !(e.target is SimpleResizableShape) && !(e.target is SimpleResizableImage) && !(e.target is SimpleResizableButton))) && !(e.target is IHandle))
+                    clearSelection(null);
+            }
+
+            private function applyAddObject(o:Object):void {
+                objectsLookup[o.model]=o;
+            }
+
+            [Mediate(event="stopPlayback")]
+            public function stopPlayback():void {
+                clearSelection(null);
+                for (var i:int=0, ix:int=holder.numElements; i < ix; i++) {
+                    if (holder.getElementAt(i) is SimpleResizableVideo)
+                        (holder.getElementAt(i) as SimpleResizableVideo).stop();
+                    if (holder.getElementAt(i) is AudioPlayer)
+                        (holder.getElementAt(i) as AudioPlayer).stopSound();
+                }
+            }
+
+            [Mediate(event="slideSelected", properties="slide")]
+            public function handleSlideSelected(slide:Slide):void {
+                stopPlayback();
+                clearSelection(null);
+                holder.removeAllElements();
+
+                if (slide) {
+                    var currObjs:ArrayCollection=slide.stageObjects;
+                    var co:MediaObject;
+                    var ve:IVisualElement;
+                    for (var j:int=currObjs.length - 1, jx:int=0; j >= jx; j--) {
+                        co=currObjs.getItemAt(j) as MediaObject;
+                        if (co is ImageMedia)
+                            ve=addImage(co as ImageMedia);
+                        else if (co is TextMedia)
+                            ve=addText(co as TextMedia);
+                        else if (co is VideoMedia)
+                            ve=addVideo(co as VideoMedia);
+                        else if (co is AudioMedia)
+                            ve=addAudio(co as AudioMedia);
+                        else if (co is ShapeMedia)
+                            ve=addShape(co as ShapeMedia);
+                        else if (co is ButtonMedia)
+                            ve=addButton(co as ButtonMedia);
+                        applyAddObject(ve);
+                    }
+                    objectHandles.enableOrgMaintainProportion();
+                }
+            }
+
+            [Mediate(event="EditorEvent.MEDIA_SELECT")]
+            public function onSelectMediaEvent(ev:EditorEvent):void {
+                for each (var m:Object in objectHandles.modelList) {
+                    if (m.hasOwnProperty('media') && m.media == ev.media) {
+                        objectHandles.selectionManager.setSelected(m);
+                        return;
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:DropShadowFilter id="dsf1"
+                            color="0x000000"
+                            blurX="3"
+                            blurY="3"
+                            distance="2"
+                            quality="3"
+                            alpha="0.3"
+                            angle="90"/>
+        <mx:Image id="bgImage"
+                  x="0"
+                  y="{0.5*(this.height-contentModel.selectedSlide.height)}"
+                  source="assets/tiles/pattern_111.gif"/>
+    </fx:Declarations>
+    <s:Rect x="0"
+            y="{0.5*(this.height-contentModel.selectedSlide.height)}"
+            filters="{[dsf1]}"
+            height="{contentModel.selectedSlide.height}"
+            width="{contentModel.selectedSlide.width}">
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <mx:GradientEntry id="gradCol1"
+                                      color="{contentModel.selectedSlide.bgCol1}"/>
+                    <mx:GradientEntry id="gradCol2"
+                                      color="{contentModel.selectedSlide.bgCol2}"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <view:BitmapRect visible="{contentModel.selectedSlide.imageBGShowing}"
+                     includeInLayout="{contentModel.selectedSlide.imageBGShowing}"
+                     x="0"
+                     y="{0.5*(this.height-contentModel.selectedSlide.height)}"
+                     height="{contentModel.selectedSlide.height}"
+                     width="{contentModel.selectedSlide.width}"
+                     imgUrl="{contentModel.selectedSlide.bgImage}"
+                     scaleMode="{contentModel.selectedSlide.bgImageMethod}"/>
+    <mx:Canvas width="100%"
+               height="100%"
+               id="holder"
+               verticalScrollPolicy="off"
+               horizontalScrollPolicy="off"
+               click="canvasClicked(event)"
+               backgroundColor="0x000000"
+               backgroundAlpha="0"
+               mouseEnabled="true"
+               mouseChildren="true"/>
+</s:Group>

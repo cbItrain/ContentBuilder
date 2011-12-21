@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+	>
+<fx:Script>
+	<![CDATA[
+		import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+		import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
+		import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+		
+		[Inject] [Bindable] public var contentViewModel:ContentViewModel;
+	
+	]]>
+</fx:Script>
+	
+	<s:Rect x="0" y="0" height="100%" width="100%" >
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<s:GradientEntry color="{contentViewModel.contentProps.bgColor}" alpha="0.6"/>
+					<s:GradientEntry color="{contentViewModel.contentProps.bgColor}" alpha="1"/>
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>            
+	</s:Rect>
+</s:SkinnableContainer>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="600"
+         height="500"
+         minWidth="400"
+         minHeight="300"
+         title="Templates"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*">
+    <fx:Script>
+        <![CDATA[
+            import flashx.textLayout.events.ModelChange;
+            
+            import mx.collections.ArrayCollection;
+            import mx.core.UIComponent;
+            
+            import org.swizframework.core.SwizManager;
+            import org.swizframework.core.mxml.Swiz;
+            
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.ImagePreviewIR;
+            import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.TemplateIR;
+            import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.VideoPreviewIR;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin;
+
+            [Bindable]
+            public var closeHandler:Function;
+            [Bindable]
+            public var selectHandler:Function;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
+			
+			[Bindable]
+			private var _requested:Boolean = false;
+
+            public function refresh():void {
+				_requested = true;
+                var e:Event=new Event(ContentController.GET_TEMPLATE_LIST, true);
+                dispatcher.dispatchEvent(e);
+            }
+
+            [Mediate(event="templateListRetrieved", priority="0")]
+            public function showTamplateList():void {
+				_requested = false;
+            }
+
+            private function onButtonClick(handler:Function):void {
+                if (handler != null) {
+                    if (handler == selectHandler) {
+						selectHandler(lstList.selectedItem);
+					} else if (handler == closeHandler) {
+						closeHandler();
+					}
+                }
+            }
+
+
+            //resize props
+            private var _resizeTimer:Timer=new Timer(10);
+            private var _resizeInitPoint:Point;
+            private var _resizeHandle:UIComponent;
+            private var draggedPosition:Point=new Point();
+
+            protected function resizeMouseDown():void {
+                draggedPosition.x=this.x;
+                draggedPosition.y=this.y;
+                _resizeInitPoint=new Point(resizeButton.mouseX, resizeButton.mouseY);
+                _resizeTimer.addEventListener(TimerEvent.TIMER, onResizeTimerTick, false, 0, true);
+                this.parent.addEventListener(MouseEvent.MOUSE_UP, globalMouseUp);
+                _resizeTimer.start();
+            }
+
+            protected function globalMouseUp(e:MouseEvent):void {
+                resizeMouseUp();
+            }
+
+            protected function resizeMouseUp():void {
+                this.parent.removeEventListener(MouseEvent.MOUSE_UP, globalMouseUp);
+                _resizeTimer.stop();
+                _resizeTimer.removeEventListener(TimerEvent.TIMER, onResizeTimerTick);
+            }
+
+            private function onResizeTimerTick(event:TimerEvent):void {
+                var currentMousePoint:Point=new Point(resizeButton.mouseX, resizeButton.mouseY);
+                var gPoint:Point=resizeButton.localToGlobal(currentMousePoint);
+                var lPoint:Point=this.parent.globalToLocal(gPoint);
+                var newWidth:Number=this.width + lPoint.x - (this.width + this.x) + (resizeButton.width / 2) + 2;
+                var newHeight:Number=this.height + lPoint.y - (this.height + this.y) + (resizeButton.height / 2) + 2;
+                if (newWidth > this.minWidth) {
+                    this.width=newWidth;
+                }
+                if (newHeight > this.minHeight) {
+                    this.height=newHeight;
+                }
+            }
+        ]]>
+    </fx:Script>
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <s:Group width="100%"
+                 height="100%">
+            <mx:SWFLoader id="loaderGraphic"
+                          source="@Embed('assets/basicBlackPreloader.swf')"
+                          width="100"
+                          height="100"
+						  visible="{_requested}"
+                          verticalCenter="0"
+                          horizontalCenter="0"/>
+            <s:List id="lstList"
+                    width="100%"
+                    height="100%"
+					visible="{!_requested}"
+                    dataProvider="{contentModel.templates.getAll()}"
+                    doubleClickEnabled="true"
+                    doubleClick="selectHandler()"
+                    itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.TemplateIR"
+                    labelField="{title}"
+                    skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin">
+                <s:layout>
+                    <s:TileLayout/>
+                </s:layout>
+            </s:List>
+        </s:Group>
+        <s:Group width="100%">
+            <s:Rect radiusX="0"
+                    radiusY="0"
+                    height="100%"
+                    width="100%">
+                <s:fill>
+                    <s:LinearGradient rotation="90">
+                        <s:entries>
+                            <s:GradientEntry ratio="0"
+                                             alpha="1"
+                                             color="#F7F7F7"/>
+                            <s:GradientEntry ratio="1"
+                                             alpha="1"
+                                             color="#E5E5E5"/>
+                        </s:entries>
+                    </s:LinearGradient>
+                </s:fill>
+            </s:Rect>
+            <mx:HRule width="100%"
+                      height="1"
+                      top="0"
+                      strokeColor="0xcccccc"
+                      shadowColor="0x00ffffff"/>
+            <s:HGroup width="100%"
+                      verticalAlign="middle"
+                      paddingBottom="5"
+                      paddingLeft="2"
+                      paddingRight="26"
+                      paddingTop="5">
+                <mx:Spacer width="100%"/>
+                <s:Button label="Select"
+						  enabled="{lstList.selectedItem != null}"
+                          click="onButtonClick(selectHandler)"
+                          skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"/>
+                <s:Button label="Cancel"
+                          click="onButtonClick(closeHandler)"
+                          skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"/>
+
+            </s:HGroup>
+            <mx:Image source="@Embed('assets/resizertransp.png')"
+                      width="14"
+                      height="14"
+                      right="5"
+                      bottom="5"
+                      id="resizeButton"
+                      mouseDown="resizeMouseDown()"
+                      mouseUp="resizeMouseUp()"/>
+        </s:Group>
+    </s:VGroup>
+</s:Panel>

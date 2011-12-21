@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<content>
+<slides>
+
+<slide title="New Canvas" fromTemplate="true" description="My description - template 1" showInNav="true" width="784" height="596" customBackground="true" bgCol1="16777215" bgCol2="13421772">
+<slideObject type="VIDEO_TYPE" x="15" y="10" width="200" height="200" url="http://stratusdemo.itrainconsulting.co.uk/demo9/flvdownload/F341544521/familyguy.flv" rotation="0" alpha="1" autoPlay="true" loop="false" mute="true"/>
+</slide>
+
+<slide title="New Canvas" fromTemplate="true" description="My description - template 2" showInNav="true" width="784" height="596" customBackground="true" bgCol1="16777215" bgCol2="13421772">
+  <slideObject type="VIDEO_TYPE" x="15" y="10" width="200" height="200" url="assets/videos/fish.flv" rotation="0" alpha="1" autoPlay="true" loop="false" mute="true"/>
+  <slideObject type="AUDIO_TYPE" x="15" y="10" width="200" height="200" url="assets/audio/Groove Armada.mp3" rotation="0" alpha="1" autoPlay="true" loop="false" mute="true"/>
+  <slideObject type="SHAPE_TYPE" x="114" y="42" slideToGo="-1" urlToGo="" useHandCursor="" width="365" height="402" rotation="0" shapeType="SHAPE_TYPE_CIRCLE" rectRadius="0" lineColour="10168532" lineAlpha="0.46551724137931033" lineWeight="31" fillIsGradient="true" fillColour1="16777215" fillColour2="4885690" fillAlpha="0.6123595505617978" arrows="none" arrowLength="10" arrowWidth="4"/>
+</slide>
+<slide title="Ihloff Promotion" fromTemplate="true" description="My description - template 3" showInNav="true" width="330" height="458">
+  <slideObject type="IMAGE_TYPE" x="-15" y="0" slideToGo="-1" useHandCursor="" urlToGo="" width="820" height="461" url="assets/images/ihloff.jpg" rotation="0" alpha="1"/>
+  <slideObject type="TEXT_TYPE" x="62" y="20" slideToGo="-1" useHandCursor="" urlToGo="" width="200" height="120" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial, Helvetica" SIZE="28" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="1"><B>10% Off All </B></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial, Helvetica" SIZE="28" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="1"><B>S</B><FONT FACE="Arial,Helvetica,sans-serif"><B>pa </B></FONT><B>Services </B></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial, Helvetica" SIZE="14" COLOR="#CCCCCC" LETTERSPACING="0" KERNING="1"><B>Booked before December</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="IMAGE_TYPE" x="326" y="2" slideToGo="-1" useHandCursor="" urlToGo="" width="820" height="461" url="assets/images/ihloff.jpg" rotation="0" alpha="1"/>
+</slide>
+
+
+<slide title="New Canvas" showInNav="true" fromTemplate="true" description="My description - template 4" width="268" height="332" customBackground="true" bgCol1="16777215" bgCol2="16777215">
+  <slideObject type="IMAGE_TYPE" slideToGo="-1" useHandCursor="" urlToGo="" x="89" y="225" width="79" height="110" url="assets/images/elf.jpg" rotation="0" alpha="1"/>
+  <slideObject type="TEXT_TYPE" x="-13" y="11" slideToGo="-1" useHandCursor="" urlToGo="" width="291" height="185" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="28" COLOR="#000000" LETTERSPACING="0" KERNING="0"><B>IT&apos;S</B><FONT SIZE="36"> <FONT COLOR="#FF0000"><B>CH</B><FONT COLOR="#009900"><B>RI</B></FONT><B>ST</B><FONT COLOR="#009900"><B>MAS</B><FONT COLOR="#000000"><B>!!!</B><FONT SIZE="28"></FONT></FONT></FONT></FONT></FONT></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="18" COLOR="#000000" LETTERSPACING="0" KERNING="0">And time for our Company Christmas Party.</FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="18" COLOR="#000000" LETTERSPACING="0" KERNING="0"></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="28" y="175" slideToGo="-1" useHandCursor="" urlToGo="" width="197" height="51" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><B>December 21st</B><FONT KERNING="0"></FONT></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><B>7pm at the Green, Clerkenwell. </B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+</slide>
+
+
+<slide title="New Canvas" showInNav="true" fromTemplate="true" description="My description - template 5" width="388" height="589" customBackground="true" bgCol1="0" bgCol2="3355443">
+  <slideObject type="IMAGE_TYPE" x="1" y="-3.049999999999997" slideToGo="-1" urlToGo="" useHandCursor="" width="388.95" height="249" url="assets/images/prods2.jpg" rotation="0" alpha="1"/>
+  <slideObject type="IMAGE_TYPE" x="-2" y="333" slideToGo="-1" urlToGo="" useHandCursor="" width="394" height="256" url="assets/images/prods3.jpg" rotation="0" alpha="1"/>
+  <slideObject type="TEXT_TYPE" x="8" y="253" slideToGo="-1" urlToGo="" useHandCursor="" width="381" height="120" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="26" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="0">20% discount on ALL products if they are sat on bamboo mats*!</FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="21" y="570" slideToGo="-1" urlToGo="" useHandCursor="" width="378" height="112" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"><B>* Products must also be in the vicinity of small shiny pebbles.</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="19" y="568" slideToGo="-1" urlToGo="" useHandCursor="" width="378" height="112" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"><B>* Products must also be in the vicinity of small shiny pebbles.</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="21" y="568" slideToGo="-1" urlToGo="" useHandCursor="" width="378" height="112" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"><B>* Products must also be in the vicinity of small shiny pebbles.</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="19" y="570" slideToGo="-1" urlToGo="" useHandCursor="" width="378" height="112" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"><B>* Products must also be in the vicinity of small shiny pebbles.</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="20" y="569" slideToGo="-1" urlToGo="" useHandCursor="" width="378" height="112" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="0"><B>* Products must also be in the vicinity of small shiny pebbles.</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+</slide>
+
+<slide title="New Canvas" fromTemplate="true" description="My description - template 6" showInNav="true" width="700" height="470" customBackground="true" bgCol1="12434859" bgCol2="9145214">
+  <slideObject type="IMAGE_TYPE" x="24.850000000000023" y="153.95" slideToGo="-1" urlToGo="" useHandCursor="" width="361" height="246" url="assets/images/salon2.jpg" rotation="0" alpha="1"/>
+  <slideObject type="TEXT_TYPE" x="24" y="15" slideToGo="-1" urlToGo="" useHandCursor="" width="680" height="133" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="40" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="0"><B>How to make nails quite shiny. </B><FONT SIZE="48"></FONT></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="18" COLOR="#000000" LETTERSPACING="0" KERNING="0">A new advanced elearning course now available on Stratus!</FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="410" y="171" slideToGo="-1" urlToGo="" useHandCursor="" width="269" height="56" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="16" COLOR="#333333" LETTERSPACING="0" KERNING="0"><B>&quot;This is actually really hard!&quot;</B><FONT COLOR="#663333"></FONT></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="RIGHT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="0"><B>Sally Plimptown</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="404" y="244" slideToGo="-1" urlToGo="" useHandCursor="" width="280" height="67" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="16" COLOR="#333333" LETTERSPACING="0" KERNING="0"><B>&quot;Wow! How do they get the brushes inside the bottle?&quot;</B></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="RIGHT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="12" COLOR="#FFFFFF" LETTERSPACING="0" KERNING="0"><B>James Blunt</B></FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+  <slideObject type="TEXT_TYPE" x="400" y="352" slideToGo="-1" urlToGo="" useHandCursor="" width="280" height="67" rotation="0" alpha="1">
+    <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="Arial,Helvetica,sans-serif" SIZE="14" COLOR="#000000" LETTERSPACING="0" KERNING="0">Just log in to Stratus and join the select few able to make nails shiny!</FONT></P></TEXTFORMAT>]]></text>
+  </slideObject>
+</slide>
+
+
+</slides>
+</content>

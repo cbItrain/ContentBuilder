@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:PopUpButton xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				height="25" width="50"
+				creationComplete="onCreationComplete()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.controls.Menu;
+			import mx.events.MenuEvent;
+			
+			private var _previousClickHandler:Function;
+		
+			[Bindable] public var menu:Menu = new Menu();
+			[Bindable] public var menuItems:Array = [];
+			[Bindable] public var onMenuClickHandler:Function;
+			
+			private function onCreationComplete():void {
+				BindingUtils.bindProperty(menu, 'dataProvider', this, 'menuItems');
+				this.popUp = menu;
+				menu.selectedIndex = 0;
+				onClickHandlerChange();	
+				ChangeWatcher.watch(this, 'onMenuClickHandler', onClickHandlerChange);
+			}
+			
+			private function onClickHandlerChange(o:Object = null):void{
+				if (_previousClickHandler != null) {
+					menu.removeEventListener(MenuEvent.ITEM_CLICK, _previousClickHandler);
+				}
+				if (onMenuClickHandler != null) {
+					menu.addEventListener(MenuEvent.ITEM_CLICK, onMenuClickHandler);
+				}
+				_previousClickHandler = onMenuClickHandler;
+			}
+			
+		]]>
+	</fx:Script>
+</mx:PopUpButton>

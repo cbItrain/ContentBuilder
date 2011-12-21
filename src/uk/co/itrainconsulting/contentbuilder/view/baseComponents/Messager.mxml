@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 alpha="0.0"
+		 visible="false"
+		 top="20"
+		 horizontalCenter="0"
+		 preinitialize="onPreinitialize()"
+		 filters="{[Common.dropShadow]}">
+	<fx:Declarations>
+		<s:Fade id="fadeEffect"
+				alphaFrom="0.0"
+				alphaTo=".8"
+				duration="500"
+				target="{this}"
+				effectStart="{visible = true}"
+				effectEnd="onEffectEnd()"/>
+		<s:Resize id="resizeEffect"
+				  duration="500"
+				  heightFrom="0"
+				  target="{descContainer}"/>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.common.utils.Common;
+			import uk.co.itrainconsulting.contentbuilder.control.events.MessageEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.EnumMessageSeverity;
+
+			public static const MESSAGE_VISIBILITY_INTERVAL:int=3000;
+			public static const MESSAGE_CACHE_SIZE:int=3;
+
+			private var _messages:Vector.<MessageEvent>=new Vector.<MessageEvent>();
+			private var _timer:Timer=new Timer(MESSAGE_VISIBILITY_INTERVAL, 1);
+
+			private function onPreinitialize():void {
+				_timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
+			}
+
+			private function onCloseButtonClick():void {
+				onTimerComplete();
+			}
+
+			private function onDetailsClick():void {
+				if (descContainer.height) { //hide
+					if (resizeEffect.isPlaying)
+						resizeEffect.stop();
+					resizeEffect.heightTo=descContainer.height;
+					resizeEffect.play(null, true);
+				} else {
+					if (resizeEffect.isPlaying)
+						resizeEffect.stop();
+					resizeEffect.heightTo=lblAditionalInfo.height;
+					resizeEffect.play();
+				}
+			}
+
+			private function onTimerComplete(te:TimerEvent=null):void {
+				fadeEffect.play([this], true);
+			}
+
+			private function onEffectEnd():void {
+				if (alpha == 0.0) {
+					visible=false;
+					showMessages();
+				} else if (this.currentState != "major") {
+					if (_timer.running)
+						_timer.stop();
+					_timer.reset();
+					_timer.start();
+				}
+			}
+
+			[Mediate(event="MessageEvent.SHOW_MESSAGE")]
+			public function onShowMessage(me:MessageEvent):void {
+				if (me.message && !me.messageSeverity.equals(EnumMessageSeverity.HINT)) {
+					if (me.highPriority) {
+						_messages.unshift(me);
+						if (fadeEffect.isPlaying)
+							fadeEffect.stop();
+						if (_timer.running) {
+							_timer.stop();
+							onTimerComplete();
+						}
+					} else {
+						_messages.push(me);
+					}
+					if (_messages.length > MESSAGE_CACHE_SIZE) {
+						_messages.splice(0, MESSAGE_CACHE_SIZE);
+					}
+				}
+				showMessages();
+			}
+
+			private function showMessages():void {
+				if (!(fadeEffect.isPlaying || _timer.running)) {
+					if (_messages.length) {
+						var message:MessageEvent=_messages.shift();
+						lblMessage.text=message.message;
+						this.currentState=message.messageSeverity.name.toLowerCase();
+						lblDescription.text=message.description;
+						lblAditionalInfo.text=message.additionalInfo;
+						fadeEffect.play();
+					}
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="minor"/>
+		<s:State name="major"/>
+		<s:State name="hint"/>
+	</s:states>
+	<s:Rect width="100%"
+			height="100%"
+			radiusX="10"
+			radiusY="10">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color.normal="#06C406"
+								 color.minor="#FAC354"
+								 color.major="#F95E3F"
+								 color.hint="#A5A5A5"/>
+				<s:GradientEntry color.normal="#05A705"
+								 color.minor="#F8A808"
+								 color.major="#EF2E07"
+								 color.hint="#969696"/>
+			</s:LinearGradient>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="#FFFFFF"
+								weight="3"/>
+		</s:stroke>
+	</s:Rect>
+	<s:VGroup paddingBottom="15"
+			  paddingLeft="15"
+			  paddingRight="15"
+			  paddingTop="15">
+		<s:HGroup id="buttonContainer"
+				  verticalAlign="middle">
+			<s:VGroup>
+				<s:Label id="lblMessage"
+						 styleName="messageBig"
+						 maxDisplayedLines="1"
+						 maxWidth="600"/>
+				<s:Label id="lblDescription"
+						 styleName="messageSmall"
+						 maxWidth="600"
+						 visible="false"
+						 visible.major="true"
+						 includeInLayout="false"
+						 includeInLayout.major="true"/>
+			</s:VGroup>
+			<mx:LinkButton label="{descContainer.height != 0 ? 'Hide Details' : 'Show Details'}"
+						   color="#FFFFFF"
+						   width="100"
+						   textDecoration="underline"
+						   visible.major="true"
+						   includeInLayout="false"
+						   includeInLayout.major="true"
+						   click="onDetailsClick()"/>
+			<mx:LinkButton label="Close"
+						   color="#FFFFFF"
+						   textDecoration="underline"
+						   visible="false"
+						   visible.major="true"
+						   includeInLayout="false"
+						   includeInLayout.major="true"
+						   click="onCloseButtonClick()"/>
+		</s:HGroup>
+		<s:Group id="descContainer"
+				 clipAndEnableScrolling="true"
+				 height="0"
+				 visible="false"
+				 visible.major="true"
+				 includeInLayout="false"
+				 includeInLayout.major="true">
+			<s:TextArea id="lblAditionalInfo"
+					 width="{buttonContainer.width}"
+					 maxHeight="300"
+					 editable="false"/>
+		</s:Group>
+	</s:VGroup>
+</s:Group>

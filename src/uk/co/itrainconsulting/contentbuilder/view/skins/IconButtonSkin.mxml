@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:s="library://ns.adobe.com/flex/spark"
+             xmlns:mx="library://ns.adobe.com/flex/halo"
+             minHeight="25"
+             alpha.disabled="0.5"
+             creationComplete="cc()">
+    <fx:Metadata> 
+		[HostComponent("spark.components.Button")] 
+	</fx:Metadata>
+    <fx:Script>
+        <![CDATA[
+			import spark.primitives.supportClasses.FilledElement;
+			
+			import uk.co.itrainconsulting.contentbuilder.view.baseComponents.IconButton;
+            static private const exclusions:Array=["labelElement"];
+
+            override public function get colorizeExclusions():Array {
+                return exclusions;
+            }
+
+            private function cc():void {
+				iconImage.source = IconButton(parent).icon;
+                labelDisplay.includeInLayout=labelDisplay.visible=IconButton(parent).showLabel;
+                layoutContainer.gap=IconButton(parent).labelGap;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:states>
+        <s:State name="up"/>
+        <s:State name="over"/>
+        <s:State name="down"/>
+        <s:State name="disabled"/>
+    </s:states>
+    <s:Rect radiusX="0"
+            radiusY="0"
+            height="100%"
+            width="100%"
+            includeIn="up">
+        <s:stroke>
+            <s:SolidColorStroke color="#B4B4B4"
+                                alpha="1"/>
+        </s:stroke>
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry ratio="0"
+                                     alpha="1"
+                                     color="#FCFCFC"/>
+                    <s:GradientEntry ratio="1"
+                                     alpha="1"
+                                     color="#E1E1E1"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:Rect radiusX="0"
+            radiusY="0"
+            height="100%"
+            width="100%"
+            includeIn="over">
+        <s:stroke>
+            <s:SolidColorStroke color="#B4B4B4"
+                                alpha="1"/>
+        </s:stroke>
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry ratio="0"
+                                     alpha="1"
+                                     color="#FCFCFC"/>
+                    <s:GradientEntry ratio="1"
+                                     alpha="1"
+                                     color="#F8F8F8"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:Rect radiusX="0"
+            radiusY="0"
+            height="100%"
+            width="100%"
+            includeIn="down">
+        <s:stroke>
+            <s:SolidColorStroke color="#B4B4B4"
+                                alpha="1"/>
+        </s:stroke>
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry ratio="0"
+                                     alpha="1"
+                                     color="#C5C5C5"/>
+                    <s:GradientEntry ratio="0.1"
+                                     alpha="1"
+                                     color="#E0E0E0"/>
+                    <s:GradientEntry ratio="1"
+                                     alpha="1"
+                                     color="#C9C9C9"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:Rect radiusX="0"
+            radiusY="0"
+            height="100%"
+            width="100%"
+            includeIn="disabled">
+        <s:stroke>
+            <s:SolidColorStroke color="#B4B4B4"
+                                alpha="1"/>
+        </s:stroke>
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry ratio="0"
+                                     alpha="1"
+                                     color="#FCFCFC"/>
+                    <s:GradientEntry ratio="1"
+                                     alpha="1"
+                                     color="#E1E1E1"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:HGroup id="layoutContainer"
+              verticalAlign="bottom"
+              gap="3"
+              paddingBottom="4"
+              paddingLeft="5"
+              paddingRight="6"
+              paddingTop="5">
+        <s:Image id="iconImage"
+				 maxHeight="30"
+                 left="5"/>
+        <s:Label id="labelDisplay"
+                 color="0x333333"
+                 textAlign="center"
+                 paddingBottom="1"
+                 lineBreak="toFit"/>
+    </s:HGroup>
+
+</s:SparkSkin>

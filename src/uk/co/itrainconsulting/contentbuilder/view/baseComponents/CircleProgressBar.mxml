@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			
+			private var _fileReference:FileReferenceWrapper;
+			
+			[Bindable]
+			public function get fileReference():FileReferenceWrapper {
+				return _fileReference;
+			}
+			
+			public function set fileReference(value:FileReferenceWrapper):void {
+				removeEventListeners();
+				_fileReference = value;
+				addEventListeners();
+			}
+			
+			private function addEventListeners():void {
+				if (_fileReference) {
+					_fileReference.addEventListener(ProgressEvent.PROGRESS, onProgress);
+				}
+			}
+			
+			private function removeEventListeners():void {
+				if (_fileReference) {
+					_fileReference.removeEventListener(ProgressEvent.PROGRESS, onProgress);
+				}
+			}
+			
+			private function onProgress(e:ProgressEvent):void {
+				lblProgressIndicator.text = Math.round(e.bytesLoaded/e.bytesTotal*100);
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup verticalAlign="middle"
+			  horizontalAlign="center"
+			  width="100%"
+			  height="100%">
+		<s:Label id="lblProgressIndicator"/>
+	</s:VGroup>
+</s:Group>

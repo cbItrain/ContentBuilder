@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          width="22"
+          height="22"
+          click="launchPopup()"
+          xmlns:mx="library://ns.adobe.com/flex/halo"
+          skinClass="uk.co.itrainconsulting.components.colourpick.skin.ThumbButtonSkin"
+          xmlns:colourpick="uk.co.itrainconsulting.components.colourpick.*"
+          xmlns:colourpick1="uk.co.itrainconsulting.components.colourpick.*">
+    <fx:Metadata> 
+		[Event(name="change", type="uk.co.itrainconsulting.components.colourpick.events.ColourPickEvent")] 
+		[Event(name="selected", type="uk.co.itrainconsulting.components.colourpick.events.ColourPickEvent")] 
+	</fx:Metadata>
+    <fx:Script>
+        <![CDATA[
+            import mx.binding.utils.BindingUtils;
+            import mx.managers.PopUpManager;
+
+            import uk.co.itrainconsulting.components.colourpick.events.ColourPickEvent;
+
+
+            private var _colour:uint=0xcccccc;
+
+            [Bindable]
+            [Inspectable(category="Data", defaultValue="0xcccccc")]
+            /**
+             *  The currently selected colour.
+             *
+             *  @default 0xffffff
+             *
+             *  @langversion 3.0
+             *  @playerversion Flash 10
+             *  @playerversion AIR 1.5
+             *  @productversion Flex 4
+             */
+            public function get colour():uint {
+                return _colour;
+            }
+
+            public function set colour(val:uint):void {
+                if (val != _colour) {
+                    _colour=val;
+                }
+            }
+            private var gap:Number=10;
+
+            private function launchPopup():void {
+                PopUpManager.addPopUp(colourPop, DisplayObject(this.parentApplication));
+                var popW:Number=colourPop.width;
+                var popH:Number=colourPop.height;
+                var p:Point=this.localToGlobal(new Point(0, 0));
+                var stW:Number=this.parentApplication.width;
+                var stH:Number=this.parentApplication.height;
+                // set x pos first
+                if ((p.x + this.width + gap + popW) < stW)
+                    colourPop.x=p.x + this.width + gap;
+                else
+                    colourPop.x=p.x - popW - gap;
+                if ((p.y + this.height + popH) < stH)
+                    colourPop.y=p.y;
+                else
+                    colourPop.y=(p.y + this.height) - popH;
+                colourPop.setStartColour(colour);
+            }
+
+            private function colourChanged(e:ColourPickEvent):void {
+                colour=e.newColour;
+                passEvent(e);
+            }
+
+            private function passEvent(e:ColourPickEvent):void {
+                var ce:ColourPickEvent=e.clone() as ColourPickEvent;
+                dispatchEvent(e);
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <colourpick1:ColourPickPopup id="colourPop"
+                                     change="colourChanged(event)"
+                                     selected="passEvent(event)"/>
+    </fx:Declarations>
+</s:Button>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx"
+          xmlns:flexlib="com.flexlib.*"
+          xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+          toolTip="Presentation ToolBar">
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+			import mx.managers.PopUpManager;
+			
+			import uk.co.itrainconsulting.common.utils.Embeded;
+			import uk.co.itrainconsulting.common.utils.ImageRepository;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.model.UndoRedoBean;
+			import uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.ContentProperties;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+			
+			[Inject]
+			[Bindable]
+			public var undoRedoBean:UndoRedoBean;
+
+            [Embed(source="assets/icons/dragStripIcon.png")]
+            [Bindable]
+            private var dragStripIconClass:Class;
+
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
+
+            private function saveContent():void {
+                contentModel.saveContent();
+            }
+
+            private function contentClick():void {
+                var props:ContentProperties=new ContentProperties();
+                PopUpManager.addPopUp(props, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(props);
+                props.dispatcher=dispatcher;
+            }
+			
+			private function undoClick():void {
+				var ee:EditorEvent = new EditorEvent(EditorEvent.UNDO, true);
+				dispatchEvent(ee);
+			}
+			
+			private function redoClick():void {
+				var ee:EditorEvent = new EditorEvent(EditorEvent.REDO, true);
+				dispatchEvent(ee);
+			}
+        ]]>
+    </fx:Script>
+    <mx:Image source="{dragStripIconClass}"/>
+
+    <baseComponents:IconButton id="btnSave"
+                               click="saveContent()"
+							   enabled="{!contentModel.isSaving &amp;&amp; undoRedoBean.saveRequired}"
+                               icon="{Embeded.SAVE_ICON}"
+                               label="Save"/>
+
+    <baseComponents:IconButton click="contentClick()"
+                               icon="{Embeded.CONT_PROP_ICON}"
+                               label="Content Properties"/>
+	
+	<baseComponents:IconButton click="undoClick()"
+							   icon="{Embeded.UNDO_ICON}"
+							   enabled="{undoRedoBean.undoEnabled}"
+							   toolTip="Undo"/>
+	
+	<baseComponents:IconButton click="redoClick()"
+							   icon="{Embeded.REDO_ICON}"
+							   enabled="{undoRedoBean.redoEnabled}"
+							   toolTip="Redo"/>
+</s:HGroup>

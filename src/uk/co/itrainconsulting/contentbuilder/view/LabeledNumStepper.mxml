@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/halo" width="100%"
+		  verticalAlign="middle" creationComplete="setup()">
+	<fx:Script>
+		<![CDATA[
+			import spark.events.TextOperationEvent;
+			import mx.events.FlexEvent;
+			
+			[Bindable] public var label:String = "Label";
+			[Bindable] public var textAlign:String = "left";
+			[Bindable] public var max:Number = 1200;
+			[Bindable] public var min:Number = 0;
+			
+			private var _labelWidth:Number = 0;
+			
+			private var _value:Number = 0;
+			
+			[Bindable] 
+			public function get labelWidth():Number
+			{
+				return _labelWidth;
+			}
+
+			public function set labelWidth(value:Number):void
+			{
+				_labelWidth = value;
+				if (labelWidth > 0)
+					labelTF.width = value;
+			}
+			
+			[Bindable] 
+			public function get value():Number
+			{
+				return field.value;
+			}
+			
+			public function set value(value:Number):void
+			{
+				_value = value;
+				field.value = value;
+			}
+			
+			
+
+			protected function numericstepper1_changeHandler(event:Event):void
+			{
+				dispatchEvent(event);
+			}
+
+			protected function setup():void{
+				field.textDisplay.addEventListener(TextOperationEvent.CHANGE, textEntered);
+			}
+			private function textEntered(e:TextOperationEvent):void{
+				var newVal:Number= Number(field.textDisplay.text);
+				// TODO: somehow make this actually commit. 
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</fx:Metadata>
+	<s:Label id="labelTF" text="{label}" textAlign="{textAlign}" />
+	<s:NumericStepper id="field" width="100%" value="{value}" maximum="{max}" minimum="{min}" change="numericstepper1_changeHandler(event)" />
+</s:HGroup>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Rect xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/halo">
+	<fx:Script>
+		<![CDATA[
+			
+			[Bindable] public var scaleMode:String = "repeat";
+			
+			private var _imgUrl:String = "";
+			
+			[Bindable]
+			public function get imgUrl():String
+			{
+				return _imgUrl;
+			}
+
+			public function set imgUrl(value:String):void
+			{
+				_imgUrl = value;
+				if (value != "")
+					loadImage(_imgUrl);
+			}
+			
+			private var loader:Loader = new Loader();
+			private function loadImage(url:String):void{
+				if (url != null && url != "")
+				{
+					bgBMD = new BitmapData(20,20,true,0x00ffffff);
+					bitmapFill.source = blankBM.bitmapData;
+					var u:URLRequest = new URLRequest(url);
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoaded);
+					loader.load(u);
+				}
+			}
+			private function imageLoaded(e:Event):void
+			{
+				var li:LoaderInfo = LoaderInfo(e.target);
+				var bm:Bitmap = Bitmap(li.content);
+				bitmapFill.source = bm.bitmapData;
+			}
+			private var bgBMD:BitmapData = new BitmapData(20,20,true,0x00ffffff);
+			[Bindable] private var blankBM:Bitmap = new Bitmap(bgBMD);
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:fill>
+	  	<s:BitmapFill id="bitmapFill" source="{blankBM}" fillMode="{scaleMode}" />
+  	</s:fill>   
+</s:Rect>

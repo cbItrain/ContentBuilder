@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skins:IconButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" 
+				  xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:skins="uk.co.itrainconsulting.contentbuilder.view.skins.*"
+				  creationComplete="cc()">
+	<fx:Script>
+		<![CDATA[
+			
+			private function cc():void{
+				// this.parent
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</skins:IconButtonSkin>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                      xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script>
+        <![CDATA[
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Bindable]
+            private var color:uint=0x999977;
+			
+			[Mediate(event="EditorEvent.CONTENT_PROPERTIES_CHANGE")]
+            [Mediate(event="ContentLoadedEvent.CONTENT_LOADED")]
+            public function onContentLoaded():void {
+                color=contentModel.contentProps.bgColor;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:Rect x="0"
+            y="0"
+            height="100%"
+            width="100%">
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry color="{color}"
+                                     alpha="0.6"/>
+                    <s:GradientEntry color="{color}"
+                                     alpha="1"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+</s:SkinnableContainer>

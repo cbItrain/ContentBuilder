@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:stageObjects="uk.co.itrainconsulting.contentviewer.view.stageObjects.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			
+			
+			[Bindable] private var currentPreviewName:String = "No Audio Selected";
+			[Bindable] private var currentPreviewUrl:String = "";
+			
+			private var _selected:Object;
+			[Bindable] 
+			public function get selected():Object
+			{
+				return _selected;
+			}
+			public function set selected(val:Object):void
+			{
+				
+				_selected = val;
+				if (val == null){
+					currentPreviewName = "No Audio Selected";
+					vidPlayer.source = null;
+					vidPlayer.enabled = false;
+				} else {
+					currentPreviewName = val.name;
+					vidPlayer.source = val.url;
+					vidPlayer.enabled = true;
+				}
+				// filename, name, preview_url, url
+			}
+			public function stopPlayback():void{
+				vidPlayer.killSound();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Rect left="0" top="0" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="0x777777" />
+		</s:stroke>
+	</s:Rect>
+	<s:VGroup width="100%" height="100%" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
+		<s:Label text="Preview" fontWeight="bold" />
+		<s:Label text="Name: {currentPreviewName}" />
+		<stageObjects:AudioPlayerView width="100%" height="100%" minHeight="1" maxHeight="40" minWidth="1" id="vidPlayer" 
+									  includeInLayout="{currentPreviewName != 'No Audio Selected'}"
+									  visible="{currentPreviewName != 'No Audio Selected'}" />
+	</s:VGroup>
+</s:Group>

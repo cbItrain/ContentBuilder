@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 minWidth="21" minHeight="25" creationComplete="cc()"
+			 alpha.disabledStates="0.5" >
+	<fx:Metadata> 
+		[HostComponent("spark.components.ToggleButton")]
+	</fx:Metadata>    
+	<fx:Script> 
+		<![CDATA[         
+			import uk.co.itrainconsulting.contentbuilder.view.baseComponents.IconButtonBarButton;
+			
+			static private const exclusions:Array = ["labelDisplay"]; 
+			override public function get colorizeExclusions():Array
+			{
+				return exclusions;
+			}
+			override protected function updateDisplayList(unscaledWidth:Number, unscaleHeight:Number):void
+			{
+				var cr:Number = getStyle("cornerRadius");
+				
+				if (cornerRadius != cr)
+					cornerRadius = cr;
+				
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
+			[Bindable]
+			public var cornerRadius:Number = 2;
+			
+			[Bindable] private var imageType:String = "rectangle";
+			private function cc():void{
+				if (parent is IconButtonBarButton)
+				{
+					var parentButton:IconButtonBarButton = parent as IconButtonBarButton;
+					switch (parentButton.data.type){
+						case "rectangleType":
+							imageType = "rectangle";
+							break;
+						case "circleType":
+							imageType = "circle";
+							break;
+						case "lineType":
+							imageType = "line";
+							break;
+						case "noArrows":
+							imageType = "noArrows";
+							break;
+						case "leftArrow":
+							imageType = "leftArrow";
+							break;
+						case "rightArrow":
+							imageType = "rightArrow";
+							break;
+						case "bothArrows":
+							imageType = "bothArrows";
+							break;
+					}
+					this.toolTip = parentButton.data.label;
+				}
+			}
+			
+			
+		]]>        
+	</fx:Script> 
+	<fx:Declarations>
+		<s:GlowFilter color="0x1C82FF" alpha="0.5" blurX="4" blurY="4" quality="2"  id="pinkHaze" />
+		<s:GlowFilter color="0x1C82FF" alpha="0.5" blurX="4" blurY="4" quality="2" knockout="true" inner="true" id="pinkInnerHaze" />
+	</fx:Declarations>
+	<s:states> 
+		<s:State name="up" /> 
+		<s:State name="over" stateGroups="overStates" />
+		<s:State name="down" stateGroups="downStates" />
+		<s:State name="disabled" stateGroups="disabledStates" />
+		<s:State name="upAndSelected" stateGroups="selectedStates, selectedUpStates" />
+		<s:State name="overAndSelected" stateGroups="overStates, selectedStates" />
+		<s:State name="downAndSelected" stateGroups="downStates, selectedStates" />
+		<s:State name="disabledAndSelected" stateGroups="selectedUpStates, disabledStates, selectedStates" />
+	</s:states>
+	<s:Group left="-1" right="0" top="-1" bottom="-1">
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" filters="{[pinkHaze]}" includeIn="upAndSelected, overAndSelected, downAndSelected, disabledAndSelected" >
+			<s:fill> 
+				<s:LinearGradient rotation="90"> 
+					<s:entries>  
+						<s:GradientEntry ratio="0" alpha="1" color="#ffffff"/>
+						<s:GradientEntry ratio="1" alpha="1" color="#ffffff"/>
+					</s:entries> 
+				</s:LinearGradient> 
+			</s:fill> 
+		</s:Rect>
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" includeIn="up" >
+			<s:stroke>
+				<s:Stroke color="#B4B4B4" alpha="1"/>
+			</s:stroke> 
+			<s:fill> 
+				<s:LinearGradient rotation="90"> 
+					<s:entries>  
+						<s:GradientEntry ratio="0" alpha="1" color="#FCFCFC"/>
+						<s:GradientEntry ratio="1" alpha="1" color="#E1E1E1"/>
+					</s:entries> 
+				</s:LinearGradient> 
+			</s:fill> 
+		</s:Rect>
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" includeIn="over" >
+			<s:stroke>
+				<s:Stroke color="#B4B4B4" alpha="1"/>
+			</s:stroke> 
+			<s:fill> 
+				<s:LinearGradient rotation="90"> 
+					<s:entries>  
+						<s:GradientEntry ratio="0" alpha="1" color="#FCFCFC"/>
+						<s:GradientEntry ratio="1" alpha="1" color="#F8F8F8"/>
+					</s:entries> 
+				</s:LinearGradient> 
+			</s:fill> 
+		</s:Rect>
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" includeIn="down,upAndSelected,overAndSelected,downAndSelected,disabledAndSelected" >
+			<s:stroke>
+				<s:Stroke color="#B4B4B4" alpha="1"/>
+			</s:stroke> 
+			<s:fill> 
+				<s:LinearGradient rotation="90"> 
+					<s:entries>  
+						<s:GradientEntry ratio="0" alpha="1" color="#A6A6A6"/>
+						<s:GradientEntry ratio="0.2" alpha="1" color="#E0E0E0"/>
+						<s:GradientEntry ratio="1" alpha="1" color="#C9C9C9"/>
+					</s:entries> 
+				</s:LinearGradient> 
+			</s:fill> 
+		</s:Rect>
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" includeIn="disabled" >
+			<s:stroke>
+				<s:Stroke color="#B4B4B4" alpha="1"/>
+			</s:stroke> 
+			<s:fill> 
+				<s:LinearGradient rotation="90"> 
+					<s:entries>  
+						<s:GradientEntry ratio="0" alpha="1" color="#FCFCFC"/>
+						<s:GradientEntry ratio="1" alpha="1" color="#E1E1E1"/>
+					</s:entries> 
+				</s:LinearGradient> 
+			</s:fill> 
+		</s:Rect>
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" includeIn="upAndSelected, overAndSelected, downAndSelected, disabledAndSelected" 
+				>
+			<s:stroke>
+				<s:Stroke color="0x1C82FF" alpha="0" />
+			</s:stroke> 
+		</s:Rect>
+		<s:Rect radiusX="0" radiusY="0" left="0" right="0" top="0" bottom="0" filters="{[pinkInnerHaze]}" includeIn="upAndSelected, overAndSelected, downAndSelected, disabledAndSelected" >
+			<s:fill> 
+				<s:LinearGradient rotation="90"> 
+					<s:entries>  
+						<s:GradientEntry ratio="0" alpha="1" color="#ffffff"/>
+						<s:GradientEntry ratio="1" alpha="1" color="#ffffff"/>
+					</s:entries> 
+				</s:LinearGradient> 
+			</s:fill> 
+		</s:Rect>
+	</s:Group>
+	
+	<!--- The defines the appearance of the label for the first button in the ButtonBar component. -->
+	
+	<s:HGroup id="layoutContainer" verticalAlign="bottom" gap="3" paddingBottom="4" paddingLeft="5" paddingRight="6" paddingTop="5">
+		<s:Label id="labelDisplay" color="0x333333" visible="false" includeInLayout="false"
+				 textAlign="center" paddingBottom="1"
+				 lineBreak="toFit">
+		</s:Label>
+		
+		<s:BitmapImage id="rectImage" visible="{imageType == 'rectangle'}" includeInLayout="{imageType == 'rectangle'}" source="@Embed('assets/icons/rectangle.png')" />
+		<s:BitmapImage id="circleImage" visible="{imageType == 'circle'}" includeInLayout="{imageType == 'circle'}" source="@Embed('assets/icons/circles.png')" />
+		<s:BitmapImage id="lineImage" visible="{imageType == 'line'}" includeInLayout="{imageType == 'line'}" source="@Embed('assets/icons/lines.png')" />
+		<s:BitmapImage id="noArrowImage" visible="{imageType == 'noArrows'}" includeInLayout="{imageType == 'noArrows'}" 
+					   source="@Embed('assets/icons/arrow_none.png')" />
+		<s:BitmapImage id="leftArrowImage" visible="{imageType == 'leftArrow'}" includeInLayout="{imageType == 'leftArrow'}" 
+					   source="@Embed('assets/icons/arrow_left.png')" />
+		<s:BitmapImage id="rightArrowImage" visible="{imageType == 'rightArrow'}" includeInLayout="{imageType == 'rightArrow'}" 
+					   source="@Embed('assets/icons/arrow_right.png')" />
+		<s:BitmapImage id="bothArrowImage" visible="{imageType == 'bothArrows'}" includeInLayout="{imageType == 'bothArrows'}" 
+					   source="@Embed('assets/icons/arrow_both.png')" />
+	</s:HGroup>
+</s:SparkSkin>

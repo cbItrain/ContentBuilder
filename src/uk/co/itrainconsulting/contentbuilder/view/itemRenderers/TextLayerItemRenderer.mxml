@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2009/09/29/displaying-images-in-a-spark-list-control-using-a-custom-item-renderer-in-flex-4/ -->
+<s:ItemRenderer name="CustomItemRenderer"
+				xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" toolTip="{data.name}" 
+				xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+				width="100%" height="100%"
+				>
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.elements.TextFlow;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			
+			import spark.components.List;
+			import spark.utils.TextFlowUtil;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.events.DeleteItemEvent;	
+			
+			[Embed(source='assets/icons/cross-button.png')]
+			private var enbaledIcon:Class;
+			[Embed(source='assets/icons/cross-button-disabled.png')]
+			private var disabledIcon:Class;
+			
+			private var parentArray:ArrayCollection;
+			
+			
+			public override function set data(o:Object):void {
+				super.data = o;
+				if (parentArray != (owner as List).dataProvider) {
+					parentArray = (owner as List).dataProvider as ArrayCollection;
+					BindingUtils.bindSetter(onLengthChange, (owner as List).dataProvider, 'length');
+				}
+			}
+			
+			[Bindable]
+			public override function get data():Object {
+				return super.data;
+			}
+			
+			private function onLengthChange(newValue:int):void {
+				btnDelete.buttonMode = btnDelete.enabled = newValue > 1;
+				if (btnDelete.enabled) {
+					btnDelete.source = enbaledIcon;
+				} else {
+					btnDelete.source = disabledIcon;
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup left="5" right="5" top="5" bottom="5" width="100%" height="100%" verticalAlign="middle" >
+		<mx:Label text="{(itemIndex + 1) + '. ' + TextConverter.importToFlow(data,TextConverter.TEXT_FIELD_HTML_FORMAT).getText()}" truncateToFit="true" maxWidth="240" />
+		<mx:Spacer width="100%"/>
+		<mx:Image id="btnDelete"  buttonMode="true" source="@Embed('assets/icons/cross-button.png')"
+					   click="{dispatchEvent(new DeleteItemEvent(DeleteItemEvent.DELETE_LIST_ITEM, itemIndex, true))}"/>
+	</s:HGroup>
+</s:ItemRenderer>

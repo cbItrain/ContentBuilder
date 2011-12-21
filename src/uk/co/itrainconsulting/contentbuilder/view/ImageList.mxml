@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" title="Images"
+		 xmlns:s="library://ns.adobe.com/flex/spark"  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="600" height="500">
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin;
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import flashx.textLayout.events.ModelChange;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			
+			[Bindable]public var closeHandler:Function;
+			[Bindable]public var selectHandler:Function;
+			
+			[Inject] [Bindable] public var contentModel:ContentModel;
+			[Bindable] private var imageArray:ArrayCollection = new ArrayCollection();
+			
+			public function refresh():void{
+				
+				loaderGraphic.visible = loaderGraphic.includeInLayout = true;
+				imageArray = new ArrayCollection();
+				var e:Event = new Event(ContentController.GET_IMAGE_LIST, true);
+				dispatchEvent(e);
+			}
+			[Mediate(event="imageListRetrieved")]
+			public function showList():void{
+				loaderGraphic.visible = loaderGraphic.includeInLayout = false;
+				imageList.labelField = "name";
+				imageArray = contentModel.retrievedList;
+			}
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if (selectHandler != null)
+				{
+					selectHandler(imageList.selectedItem);
+				}
+			}
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				if (closeHandler != null)
+					closeHandler();
+			}
+			//resize props
+			private var _resizeTimer:Timer = new Timer(10);
+			private var _resizeInitPoint:Point;
+			private var _resizeHandle:UIComponent;
+			private var draggedPosition:Point = new Point();
+			protected function resizeMouseDown():void{
+				draggedPosition.x = this.x;
+				draggedPosition.y = this.y;
+				_resizeInitPoint = new Point(resizeButton.mouseX, resizeButton.mouseY);
+				_resizeTimer.addEventListener(TimerEvent.TIMER, onResizeTimerTick, false, 0, true);
+				_resizeTimer.start();
+			}
+			protected function resizeMouseUp():void{	
+				_resizeTimer.stop();
+				_resizeTimer.removeEventListener(TimerEvent.TIMER, onResizeTimerTick);
+			}
+			private function onResizeTimerTick(event:TimerEvent):void{
+				var currentMousePoint:Point = new Point(resizeButton.mouseX, resizeButton.mouseY);
+				var gPoint:Point = resizeButton.localToGlobal(currentMousePoint);
+				var lPoint:Point = this.parent.globalToLocal(gPoint);
+				var newWidth:Number = this.width + lPoint.x - (this.width + this.x) + (resizeButton.width/2) + 2;
+				var newHeight:Number = this.height + lPoint.y - (this.height + this.y) + (resizeButton.height/2) + 2;
+				if(newWidth > this.minWidth){
+					this.width = newWidth;
+				}
+				if(newHeight > this.minHeight){
+					this.height = newHeight;
+				}
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:Group width="100%" height="100%">
+			<s:HGroup width="100%" height="100%">
+				<!-- loader graphic -->
+				<mx:Spacer width="100%" />
+				<s:VGroup width="100%" height="100%" >
+					<mx:Spacer height="100%" />
+					<mx:SWFLoader id="loaderGraphic" source="@Embed('assets/basicBlackPreloader.swf')" width="100" height="100" />
+					<mx:Spacer height="100%" />
+				</s:VGroup>
+				<mx:Spacer width="100%" />
+			</s:HGroup>
+		<!-- list of whatever -->
+			<s:List id="imageList" width="100%" height="100%" dataProvider="{imageArray}" doubleClickEnabled="true" doubleClick="button1_clickHandler(event)"
+					itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.ImagePreviewIR"
+					skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin">
+				<s:layout>
+					<s:TileLayout horizontalGap="4" verticalGap="4" />
+				</s:layout>
+			</s:List>
+		</s:Group>
+		<s:Group width="100%" >
+			<s:Rect radiusX="0" radiusY="0" height="100%" width="100%">
+				<s:fill> 
+					<s:LinearGradient rotation="90"> 
+						<s:entries>  
+							<s:GradientEntry ratio="0" alpha="1" color="#F7F7F7"/>
+							<s:GradientEntry ratio="1" alpha="1" color="#E5E5E5"/>
+						</s:entries> 
+					</s:LinearGradient> 
+				</s:fill> 
+			</s:Rect>
+			<mx:HRule width="100%" height="1" top="0" strokeColor="0xcccccc" shadowColor="0x00ffffff" />
+			<s:HGroup width="100%" verticalAlign="middle"
+					  paddingBottom="5" paddingLeft="2" paddingRight="26" paddingTop="5">
+				<mx:Spacer width="100%" />
+				<s:Button label="Select" click="button1_clickHandler(event)" skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin" />
+				<s:Button label="Cancel" click="button2_clickHandler(event)" skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin" />
+	
+			</s:HGroup>
+			<mx:Image source="@Embed('assets/resizertransp.png')" width="14" height="14" right="5" bottom="5"
+				id="resizeButton" mouseDown="resizeMouseDown()" mouseUp="resizeMouseUp()" />
+		</s:Group>
+	</s:VGroup>
+</s:Panel>

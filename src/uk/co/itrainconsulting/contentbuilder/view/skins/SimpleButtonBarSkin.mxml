@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<spark:ButtonBarSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:spark="spark.skins.spark.*"
+					 xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*">
+	<fx:Declarations>
+		<fx:Component id="firstButton">
+			<baseComponents:IconButtonBarButton skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonBarButtonSkin" />
+		</fx:Component>   
+		<fx:Component id="middleButton">
+			<baseComponents:IconButtonBarButton skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonBarButtonSkin" />
+		</fx:Component>  
+		<fx:Component id="lastButton">
+			<baseComponents:IconButtonBarButton skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonBarButtonSkin" />
+		</fx:Component>       
+	</fx:Declarations>
+	<s:DataGroup id="dataGroup" width="100%" height="100%">
+		<s:layout>
+			<s:ButtonBarHorizontalLayout gap="4"/>
+		</s:layout>
+	</s:DataGroup>
+</spark:ButtonBarSkin>

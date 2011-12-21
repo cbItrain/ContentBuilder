@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         height="100%"
+         xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         xmlns:colourpick="uk.co.itrainconsulting.components.colourpick.*">
+    <fx:Script>
+        <![CDATA[
+			import mx.binding.utils.BindingUtils;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.common.model.EnumShapeType;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.IconButtonBarSkin;
+
+
+            [Bindable]
+            public var padding:Number=10;
+            [Bindable]
+            [Inject]
+            public var contentModel:ContentModel;
+
+            [Mediate(event="mediaSelected")]
+            public function newMediaSelected():void {
+                if (contentModel.selectedType.equals(EnumObjectType.SHAPE)) {
+                    if ((contentModel.selectedResizableObject.model as ShapeMedia).fillIsGradient) {
+                        fillTypeRG.selectedValue=2;
+                    } else {
+                        fillTypeRG.selectedValue=1;
+                    }
+
+                    switch ((contentModel.selectedResizableObject.model as ShapeMedia).shapeType.ordinal) {
+                        case EnumShapeType.RECTANGLE.ordinal:
+                            shapeTypeButtonBar.selectedIndex=0;
+                            dispatchEvent(new Event("selectedShapeIsNotLine", true));
+                            break;
+                        case EnumShapeType.CIRCLE.ordinal:
+                            shapeTypeButtonBar.selectedIndex=1;
+                            dispatchEvent(new Event("selectedShapeIsNotLine", true));
+                            break;
+                        case EnumShapeType.LINE.ordinal:
+                            shapeTypeButtonBar.selectedIndex=2;
+                            dispatchEvent(new Event("selectedShapeIsLine", true));
+                            break;
+                    }
+                }
+            }
+
+            private function applyChanges():void {
+                var m:ShapeMedia=contentModel.selectedResizableObject.model as ShapeMedia;
+                m.rectRadius=radiusInput.value;
+                m.lineColour=uint(lineColPicker.colour);
+                m.lineWeight=Number(lineThicknessInput.value);
+                m.lineAlpha=lineAlphaSlider.value;
+                m.fillAlpha=fillAlphaSlider.value;
+                m.fillColour1=uint(fillPicker1.colour);
+                m.fillColour2=uint(fillPicker2.colour);
+                m.arrowLength=arrowLengthInput.value;
+                m.arrowWidth=arrowWidthInput.value;
+                m.fillIsGradient=fillTypeRG.selectedValue == 2;
+            }
+
+            private function shapeTypeChanged(e:IndexChangeEvent):void {
+                if (contentModel.selectedResizableObject is SimpleResizableShape)
+                    switch (e.newIndex) {
+                        case 0:
+							(contentModel.selectedResizableObject.model as ShapeMedia).shapeType=EnumShapeType.RECTANGLE;
+                            dispatchEvent(new Event("selectedShapeIsNotLine", true));
+                            break;
+                        case 1:
+							(contentModel.selectedResizableObject.model as ShapeMedia).shapeType=EnumShapeType.CIRCLE;
+                            dispatchEvent(new Event("selectedShapeIsNotLine", true));
+                            break;
+                        case 2:
+							(contentModel.selectedResizableObject.model as ShapeMedia).shapeType=EnumShapeType.LINE;
+                            dispatchEvent(new Event("selectedShapeIsLine", true));
+                            break;
+                    }
+            }
+
+            private function arrowTypeChanged(e:IndexChangeEvent):void {
+                if (contentModel.selectedResizableObject is SimpleResizableShape) {
+                    switch (e.newIndex) {
+                        case 0:
+							(contentModel.selectedResizableObject.model as ShapeMedia).arrows="none";
+                            break;
+                        case 1:
+							(contentModel.selectedResizableObject.model as ShapeMedia).arrows="left";
+                            break;
+                        case 2:
+							(contentModel.selectedResizableObject.model as ShapeMedia).arrows="right";
+                            break;
+                        case 3:
+							(contentModel.selectedResizableObject.model as ShapeMedia).arrows="both";
+                            break;
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <s:RadioButtonGroup id="fillTypeRG"
+                            change="applyChanges()"/>
+    </fx:Declarations>
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <pp:PropertiesTitle title="Shape Properties"
+                            icon="@Embed('assets/icons/layer-select.png')"/>
+        <s:SkinnableContainer skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin"
+                              width="100%"
+                              height="100%">
+            <s:VGroup width="100%"
+                      gap="10"
+                      horizontalAlign="left"
+                      paddingBottom="{padding}"
+                      paddingLeft="{padding}"
+                      paddingRight="{padding}"
+                      paddingTop="{padding}">
+                <pp:LayoutProperties model="{contentModel.selectedResizableObject.model as ShapeMedia}"
+                                     width="100%"/>
+                <mx:Spacer height="5"/>
+                <s:Label text="Shape Type"
+                         fontWeight="bold"/>
+
+                <s:ButtonBar height="24"
+                             width="120"
+                             requireSelection="true"
+                             id="shapeTypeButtonBar"
+                             skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.IconButtonBarSkin"
+                             selectedIndex="0"
+                             change="shapeTypeChanged(event)">
+                    <mx:ArrayCollection>
+                        <fx:Object icon="@Embed('assets/icons/rectangle.png')"
+                                   label="Rectangle">
+                        </fx:Object>
+                        <fx:Object icon="@Embed('assets/icons/circles.png')"
+                                   label="Circle">
+                        </fx:Object>
+                        <fx:Object icon="@Embed('assets/icons/lines.png')"
+                                   label="Line">
+                        </fx:Object>
+                    </mx:ArrayCollection>
+                </s:ButtonBar>
+                <mx:Spacer height="5"/>
+                <s:Label id="lblRectangle"
+                         text="Rectangle Properties"
+                         fontWeight="bold"
+                         visible="{lblRectangle.includeInLayout}"
+                         includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.RECTANGLE)}"/>
+                <s:Label id="lblCircle"
+                         text="Circle Properties"
+                         fontWeight="bold"
+                         visible="{lblCircle.includeInLayout}"
+                         includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.CIRCLE)}"/>
+                <s:Label id="lblLine"
+                         text="Line Properties"
+                         fontWeight="bold"
+                         visible="{lblLine.includeInLayout}"
+                         includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.LINE)}"/>
+
+                <mx:Spacer height="5"/>
+                <s:HGroup width="100%"
+                          verticalAlign="middle">
+                    <s:Label text="Line Colour"/>
+                    <colourpick:ColourPick id="lineColPicker"
+                                           selected="applyChanges()"
+                                           colour="{(contentModel.selectedResizableObject.model as ShapeMedia).lineColour}"/>
+                    <view:LabeledNumStepper textAlign="right"
+                                            labelWidth="60"
+                                            id="lineThicknessInput"
+                                            label="Line Thickness"
+                                            value="{(contentModel.selectedResizableObject.model as ShapeMedia).lineWeight}"
+                                            min="0"
+                                            max="200"
+                                            width="100%"
+                                            change="applyChanges()"/>
+                </s:HGroup>
+
+                <s:HGroup width="100%">
+                    <s:Label width="60"
+                             text="Line Alpha"/>
+                    <s:HSlider id="lineAlphaSlider"
+                               width="100%"
+                               snapInterval="0"
+                               maximum="1"
+                               minimum="0"
+                               stepSize="0.1"
+                               value="{(contentModel.selectedResizableObject.model as ShapeMedia).lineAlpha}"
+                               change="applyChanges()"
+                               slideDuration="0"
+                               liveDragging="true"/>
+                </s:HGroup>
+                <view:LabeledNumStepper visible="{radiusInput.includeInLayout}"
+                                        includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.RECTANGLE)}"
+                                        id="radiusInput"
+                                        change="applyChanges()"
+                                        label="Corner Radius"
+                                        value="{(contentModel.selectedResizableObject.model as ShapeMedia).rectRadius}"
+                                        width="100%"/>
+
+
+                <!-- Fill options -->
+                <s:VGroup id="grNLine"
+                          visible="{grNLine.includeInLayout}"
+                          includeInLayout="{!(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.LINE)}">
+                    <mx:Spacer height="5"/>
+                    <s:Label text="Fill"/>
+                    <s:HGroup>
+                        <s:RadioButton id="solidRB"
+                                       label="Solid"
+                                       group="{fillTypeRG}"
+                                       value="1"
+                                       selected="true"/>
+                        <s:RadioButton id="gradientRB"
+                                       label="Gradient"
+                                       group="{fillTypeRG}"
+                                       value="2"/>
+                    </s:HGroup>
+                    <mx:Spacer height="2"/>
+                    <s:HGroup width="100%"
+                              verticalAlign="middle">
+                        <s:Label text="Top"/>
+                        <colourpick:ColourPick id="fillPicker1"
+                                               selected="applyChanges()"
+                                               colour="{(contentModel.selectedResizableObject.model as ShapeMedia).fillColour1}"/>
+                        <s:Label text="Bottom"
+                                 includeInLayout="{fillTypeRG.selectedValue==2}"
+                                 visible="{fillTypeRG.selectedValue==2}"/>
+                        <colourpick:ColourPick id="fillPicker2"
+                                               includeInLayout="{fillTypeRG.selectedValue==2}"
+                                               visible="{fillTypeRG.selectedValue==2}"
+                                               colour="{(contentModel.selectedResizableObject.model as ShapeMedia).fillColour2}"
+                                               selected="applyChanges()"/>
+                    </s:HGroup>
+                    <mx:Spacer height="2"/>
+                    <s:HGroup width="100%">
+                        <s:Label width="60"
+                                 text="Fill Alpha"/>
+                        <s:HSlider id="fillAlphaSlider"
+                                   width="100%"
+                                   snapInterval="0"
+                                   maximum="1"
+                                   minimum="0"
+                                   stepSize="0.1"
+                                   value="{(contentModel.selectedResizableObject.model as ShapeMedia).fillAlpha}"
+                                   change="applyChanges()"
+                                   slideDuration="0"
+                                   liveDragging="true"/>
+                    </s:HGroup>
+                </s:VGroup>
+
+                <!-- Arrow options -->
+                <mx:VBox id="grLine" visible="{grLine.includeInLayout}"
+                         includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.LINE)}">
+
+                    <mx:Spacer height="5"/>
+                    <s:Label text="Arrow Options"
+                             fontWeight="normal"/>
+
+                    <s:ButtonBar height="24"
+                                 width="160"
+                                 requireSelection="true"
+                                 id="arrowTypeButtonBar"
+                                 skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.IconButtonBarSkin"
+                                 selectedIndex="0"
+                                 change="arrowTypeChanged(event)">
+                        <mx:ArrayCollection>
+                            <fx:Object icon="@Embed('assets/icons/arrow_none.png')"
+                                       label="No Arrows">
+                            </fx:Object>
+                            <fx:Object icon="@Embed('assets/icons/arrow_left.png')"
+                                       label="Left Arrow">
+                            </fx:Object>
+                            <fx:Object icon="@Embed('assets/icons/arrow_right.png')"
+                                       label="Right Arrow">
+                            </fx:Object>
+                            <fx:Object icon="@Embed('assets/icons/arrow_both.png')"
+                                       label="Both Arrows">
+                            </fx:Object>
+                        </mx:ArrayCollection>
+                    </s:ButtonBar>
+                    <mx:Spacer height="5"/>
+                    <view:LabeledNumStepper visible="{arrowWidthInput.includeInLayout}"
+                                            includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.LINE)}"
+                                            id="arrowWidthInput"
+                                            change="applyChanges()"
+                                            label="Arrow Width"
+                                            value="{(contentModel.selectedResizableObject.model as ShapeMedia).arrowWidth}"
+                                            width="100%"/>
+                    <view:LabeledNumStepper visible="{arrowLengthInput.includeInLayout}"
+                                            includeInLayout="{(contentModel.selectedResizableObject.model as ShapeMedia).shapeType.equals(EnumShapeType.LINE)}"
+                                            id="arrowLengthInput"
+                                            change="applyChanges()"
+                                            label="Arrow Length"
+                                            value="{(contentModel.selectedResizableObject.model as ShapeMedia).arrowLength}"
+                                            width="100%"/>
+                </mx:VBox>
+
+                <pp:NavigationProperties width="100%"
+                                         model="{contentModel.selectedResizableObject.model as ShapeMedia}"/>
+
+            </s:VGroup>
+        </s:SkinnableContainer>
+    </s:VGroup>
+</s:Group>

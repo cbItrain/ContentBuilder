@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:MXDataGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx" 
+						  focusEnabled="true">
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.events.FileUploadEvent;
+			import uk.co.itrainconsulting.contentbuilder.view.baseComponents.FileUploader;
+			private static const WAITING_MESSAGE:String = "Waiting...";
+			private static const COMPLETE_MESSAGE:String = "Upload Complete!";
+			
+			private var _fileReferenceWrapper:FileReferenceWrapper;
+			
+			override public function set data(value:Object):void {
+				super.data = value;
+				if (_fileReferenceWrapper)
+					removeEventListeners();
+				_fileReferenceWrapper = value as FileReferenceWrapper;
+				if (_fileReferenceWrapper)
+					addEventListeners();
+				lblData.text = (parentDocument as FileUploader).isInQueue(_fileReferenceWrapper) ? WAITING_MESSAGE : COMPLETE_MESSAGE;
+			}
+			
+			private function addEventListeners():void {
+				_fileReferenceWrapper.addEventListener(FileUploadEvent.UPLOADING_STARTED, onUploadingStarted);
+				_fileReferenceWrapper.addEventListener(FileUploadEvent.UPLOADING_PROGRESS, onUploadingProgress);
+				_fileReferenceWrapper.addEventListener(FileUploadEvent.UPLOADING_COMPLETE, onUploadingComplete);
+			}
+			
+			private function removeEventListeners():void {
+				_fileReferenceWrapper.removeEventListener(FileUploadEvent.UPLOADING_STARTED, onUploadingStarted);
+				_fileReferenceWrapper.removeEventListener(FileUploadEvent.UPLOADING_PROGRESS, onUploadingProgress);
+				_fileReferenceWrapper.removeEventListener(FileUploadEvent.UPLOADING_COMPLETE, onUploadingComplete);
+			}
+			
+			private function onUploadingStarted(e:FileUploadEvent):void {
+				progressBar.visible = progressBar.includeInLayout = true;
+				lblData.visible = lblData.includeInLayout = false;
+			}
+			
+			private function onUploadingComplete(e:FileUploadEvent):void {
+				lblData.text = COMPLETE_MESSAGE;
+				lblData.visible = lblData.includeInLayout = true;
+				progressBar.visible = progressBar.includeInLayout = false;
+			}
+			
+			private function onUploadingProgress(e:FileUploadEvent):void {
+				progressBar.setProgress(_fileReferenceWrapper.uploadProgress, 100);
+			}
+		]]>
+	</fx:Script>
+	<s:Label id="lblData" top="0" left="0" right="0" bottom="0" />
+	<mx:ProgressBar id="progressBar" visible="false" includeInLayout="false" minimum="0" maximum="100"/>
+</s:MXDataGridItemRenderer>

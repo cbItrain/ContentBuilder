@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" alpha="0" mouseEnabled="false"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			
+			private function nextClicked():void{
+			}
+			
+			public function showEndDialogue():void{
+				
+			}
+			private function hideThis():void{
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:Fade alphaFrom="1" alphaTo="0" duration="500" id="fadeOut" target="{this}" />
+		<s:Fade alphaFrom="0" alphaTo="1" duration="500" id="fadeIn" target="{this}" />
+		
+	</fx:Declarations>
+	<s:Rect x="0" y="0" height="100%" width="100%" topLeftRadiusX="10" topLeftRadiusY="10" >
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<s:GradientEntry color="0xffffff" alpha="0.6"/>
+					<s:GradientEntry color="0xffffff" alpha="0.8"/>
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>            
+	</s:Rect>
+	<s:VGroup width="250" height="100%" gap="10" horizontalAlign="right"
+			  paddingBottom="10" paddingRight="10" paddingLeft="10" paddingTop="10">
+		<mx:TextArea width="100%"  height="60"
+			contentBackgroundAlpha="0" borderVisible="false" selectable="false" editable="false"
+			text="You have reached the end of this content. Press next when you want to go to the next ..." textAlign="left" />
+		<s:HGroup>
+			<!--<s:Button label="Hide this" />-->
+			<s:Button label="Hide this message"  click="hideThis()" />
+			<s:Button label="Next" click="nextClicked()" />
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

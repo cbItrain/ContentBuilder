@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.TextArea;
+			import mx.events.CloseEvent;
+			
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.AudioPlayer;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableButton;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableVideo;
+			import uk.co.itrainconsulting.contentviewer.control.ContentViewController;
+			import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+			import uk.co.itrainconsulting.contentviewer.view.stageObjects.StageTextAreaWrapper;
+			import uk.co.itrainconsulting.contentviewer.view.stageObjects.StageTextAreaWrapperBase;
+			
+			[Inject] [Bindable] public var contentViewModel:ContentViewModel;
+			
+			private var _slide:Slide;
+			
+			[Bindable]
+			public function get slide():Slide
+			{
+				return _slide;
+			}
+			
+			public function set slide(val:Slide):void
+			{
+				_slide = val;
+				this.width = slide.width;
+				this.height = slide.height;
+				updateLayout();
+			}
+			
+			private function addShape(sm:ShapeMedia):void{
+				
+				var srs:SimpleResizableShape=new SimpleResizableShape(sm);
+				srs.addEventListener(MouseEvent.CLICK, clickHandler);
+				holder.addChild(srs);				
+			}
+			
+			private function addImage(im:ImageMedia):void {
+				var sri:SimpleResizableImage=new SimpleResizableImage(im);
+				sri.maintainAspectRatio=false;
+				sri.smoothBitmapContent=true;
+				sri.addEventListener(MouseEvent.CLICK, clickHandler);
+				holder.addChild(sri);
+			}
+			
+			private function addText(tm:TextMedia):void {
+				var st:StageTextAreaWrapperBase = new StageTextAreaWrapper(tm);
+				if (!tm.advTextMode)
+					st.addEventListener(MouseEvent.CLICK, clickHandler);
+				holder.addChild(st);
+			}
+			
+			private function addVideo(vm:VideoMedia):void{
+				var srv:SimpleResizableVideo=new SimpleResizableVideo(vm);
+				holder.addChild(srv);
+			}
+			private function addAudio(am:AudioMedia):void{
+				var ap:AudioPlayer=new AudioPlayer(am);
+				ap.editorMode=false;
+				holder.addElement(ap);
+			}
+			
+			private function addButton(bm:ButtonMedia):void{
+				var srb:SimpleResizableButton=new SimpleResizableButton(bm);
+				srb.addEventListener(MouseEvent.CLICK, clickHandler);
+				holder.addElement(srb);
+			}
+			
+			private function clickHandler(ev:MouseEvent):void {
+				if (ev.currentTarget.model.slideToGo != -1) {
+					var index:int = ev.target.slideToGo as int;
+					var currentIndex:int;
+					switch (index) {
+						case -10: contentViewModel.preppingCanvas = 0; break;
+						case -20: contentViewModel.preppingCanvas = contentViewModel.slides.slidesCount - 1; break;
+						case -11: currentIndex = contentViewModel.slides.getSlideIndex(contentViewModel.selectedCanvas);
+							if (currentIndex > 0) 
+								contentViewModel.preppingCanvas = currentIndex - 1;
+							break;
+						case -12: currentIndex = contentViewModel.slides.getSlideIndex(contentViewModel.selectedCanvas);
+							if (currentIndex < contentViewModel.slides.slidesCount - 1) 
+								contentViewModel.preppingCanvas = currentIndex + 1;
+							break;
+						default: contentViewModel.preppingCanvas = index;
+					}
+					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
+				} else if (ev.target.hasOwnProperty('urlToGo') && ev.target.urlToGo){
+					var url:String = ev.target.urlToGo as String;
+					if (url.indexOf('http://') < 0)
+						url = 'http://'.concat(url);
+					navigateToURL(new URLRequest(url));
+				}
+			}
+			
+			public function stopPlayingMedia():void{
+				for (var i:int = 0, ix:int = holder.numElements; i < ix; i++){
+					if (holder.getElementAt(i) is SimpleResizableVideo)
+						(holder.getElementAt(i) as SimpleResizableVideo).stop();
+					if (holder.getElementAt(i) is AudioPlayer)
+						(holder.getElementAt(i) as AudioPlayer).stopSound();
+				}
+			}
+			private function updateLayout():void
+			{
+				stopPlayingMedia();
+				holder.removeAllElements();
+				var co:MediaObject;
+				var currObjs:ArrayCollection = slide.stageObjects;
+				for (var j:int = currObjs.length - 1, jx:int = 0; j >= jx; j--)
+				{
+					co = currObjs.getItemAt(j) as MediaObject;
+					if (co is ImageMedia)
+						addImage(co as ImageMedia)
+					else if (co is TextMedia)
+						addText(co as TextMedia)
+					else if (co is VideoMedia)
+						addVideo(co as VideoMedia)
+					else if (co is AudioMedia)
+						addAudio(co as AudioMedia)
+					else if (co is ShapeMedia)
+						addShape(co as ShapeMedia)
+					else if (co is ButtonMedia)
+						addButton(co as ButtonMedia)
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:DropShadowFilter id="dsf1" color="0x000000" blurX="3" blurY="3" distance="2" quality="3" alpha="0.3" angle="90"/>
+		<!--<mx:Image id="bgImage" x="0" y="0" source="assets/tiles/pattern_111.gif" />-->
+	</fx:Declarations>
+	<s:Rect x="0" y="0" height="{slide.height}" width="{slide.width}">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<mx:GradientEntry color="0xffffff" />
+					<mx:GradientEntry color="0xffffff" />
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	<s:Rect x="0" y="0" filters="{[dsf1]}" height="{slide.height}" width="{slide.width}">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<mx:GradientEntry id="gradCol1" color="{slide.bgCol1}" />
+					<mx:GradientEntry id="gradCol2" color="{slide.bgCol2}" />
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	<view:BitmapRect visible="{slide.imageBGShowing}" includeInLayout="{slide.imageBGShowing}"
+					 x="0" y="0"
+					 height="{slide.height}" width="{slide.width}"
+					 imgUrl="{slide.bgImage}" scaleMode="{slide.bgImageMethod}"/>
+		<mx:Canvas width="100%" height="100%" id="holder" verticalScrollPolicy="off" horizontalScrollPolicy="off"
+				   backgroundColor="0x000000" backgroundAlpha="0" mouseEnabled="true" mouseChildren="true" />
+</s:Group>

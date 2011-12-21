@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:code="http://code.google.com/p/flexlib/" 
+					  xmlns:flexlib="com.flexlib.*"
+					  xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+					  xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+					  toolTip="Media Toolbar"
+					  creationComplete="onCreationComplete()">
+	<fx:Declarations>
+		<view:SlideObjectsTitleWindow id="twSlideObjects" close="onSOClose()"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.managers.PopUpManager;
+			
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			
+			[Inject] [Bindable]public var contentModel:ContentModel;
+			[Bindable] private var enabledElements:Boolean = true;
+			
+			[Embed(source="assets/icons/dragStripIcon.png")]
+			[Bindable] private var dragStripIconClass:Class;
+			
+			private function onCreationComplete():void {
+				twSlideObjects.x = tbtnStageObjects.x + this.width;
+				twSlideObjects.y = tbtnStageObjects.y + this.height + 20;
+			}
+			
+			private function onToggleButtonClick(ev:MouseEvent = null):void {
+				if (tbtnStageObjects.selected)
+					PopUpManager.addPopUp(twSlideObjects, this.parentApplication as DisplayObject);
+				else
+					PopUpManager.removePopUp(twSlideObjects);
+			}
+			
+			private function onSOClose():void {
+				tbtnStageObjects.selected = false;
+			}
+			
+			private function newImage():void{
+				newMedia(EnumObjectType.IMAGE);
+			}
+			private function newText():void{
+				newMedia(EnumObjectType.TEXT);
+			}
+			private function newVideo():void{
+				newMedia(EnumObjectType.VIDEO);
+			}
+			private function newShape():void{
+				newMedia(EnumObjectType.SHAPE);
+			}
+			private function newAudio():void{
+				newMedia(EnumObjectType.AUDIO);
+			}
+			private function newButton():void {
+				newMedia(EnumObjectType.BUTTON);
+			}
+			
+			private function newMedia(type:EnumObjectType):void {
+				var ee:EditorEvent = new EditorEvent(EditorEvent.ADD_MEDIA, true);
+				ee.additionalData = type;
+				dispatchEvent(ee);
+			}
+			
+			[Mediate(event="showSlideThumbnails")]
+			public function onShowSlideThumbnails():void {
+				this.enabledElements = false;
+			}
+			
+			[Mediate(event="showSlideEditor")]
+			public function onShowSlideEditor():void {
+				this.enabledElements = true;
+				tbtnStageObjects.selected = false;
+				onToggleButtonClick();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:Image source="{dragStripIconClass}" />
+	
+	<!--    New Text    -->
+	<baseComponents:IconButton click="newText()" 
+							   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}"
+							   icon="@Embed('assets/icons/edit.png')" 
+							   showLabel="false" 
+							   label="Text" 
+							   toolTip="Text" />
+	<!--    New Image    -->
+	<baseComponents:IconButton click="newImage()"  
+							   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}"
+							   icon="@Embed('assets/icons/picture.png')" 
+							   showLabel="false" 
+							   label="Image" 
+							   toolTip="Image" />
+	<!--    New Shape    -->
+	<baseComponents:IconButton click="newShape()" 
+							   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}"
+							   icon="@Embed('assets/icons/layer-select.png')" 
+							   showLabel="false" 
+							   label="Shape" 
+							   toolTip="Shape" />
+	<!--    New Video    -->
+	<baseComponents:IconButton click="newVideo()" 
+							   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}"
+							   icon="@Embed('assets/icons/television.png')" 
+							   showLabel="false" 
+							   label="Video" 
+							   toolTip="Video" />
+	<!--    New Audio    -->
+	<baseComponents:IconButton click="newAudio()" 
+							   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}"
+							   icon="@Embed('assets/icons/music.png')" 
+							   showLabel="false" 
+							   label="Audio" 
+							   toolTip="Audio" />
+	<!--    New Button    -->
+	<baseComponents:IconButton click="newButton()" 
+							   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}" 
+							   showLabel="false" 
+							   label="Hotspot"
+							   icon="@Embed('assets/icons/buttonIcon.png')" 
+							   toolTip="Hotspot" />
+	
+	<mx:Spacer width="2" />
+	<baseComponents:VerticalSplitter height="100%" />
+	<mx:Spacer width="2" />
+	
+	<s:ButtonBarButton id="tbtnStageObjects" 
+					   toolTip="{(tbtnStageObjects.selected)?'Hide Slide Objects Panel' : 'Show Slide Objects Panel'}" 
+					   height="25" 
+					   width="35"
+					   skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.IconToggleButtonSkin"
+					   data="@Embed('assets/icons/slideObjectsIcon.png')"
+					   enabled="{contentModel.selectedSlide != null &amp;&amp; enabledElements}"
+					   click="onToggleButtonClick(event)" />
+</s:HGroup>

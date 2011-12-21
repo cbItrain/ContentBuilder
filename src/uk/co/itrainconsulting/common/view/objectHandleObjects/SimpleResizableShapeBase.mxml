@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         mouseEnabledWhereTransparent="false"
+         xmlns:mx="library://ns.adobe.com/flex/halo"
+		 implements="uk.co.itrainconsulting.common.view.objectHandleObjects.IModelAware">
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <fx:Script>
+        <![CDATA[
+			import uk.co.itrainconsulting.common.model.EnumShapeType;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
+			
+			[Bindable]
+			protected var _model:ShapeMedia;
+			
+			//to be overriden
+			[Bindable]
+            public function get model():MediaObject {
+                return _model;
+            }
+			
+			//to be overriden
+			public function set model(value:MediaObject):void {
+				_model = value as ShapeMedia;
+			}
+
+        ]]>
+    </fx:Script>
+    <!-- RECTANGLE GEOMETRY -->
+    <s:Group id="grRectangle"
+             right="0"
+             left="0"
+             top="0"
+             bottom="0"
+             visible="{grRectangle.includeInLayout}"
+             includeInLayout="{_model.shapeType.equals(EnumShapeType.RECTANGLE)}">
+        <s:Rect radiusX="{_model.rectRadius}"
+                radiusY="{_model.rectRadius}"
+                right="0"
+                left="0"
+                top="0"
+                bottom="0"
+                visible="{!_model.fillIsGradient}"
+                includeInLayout="{!_model.fillIsGradient}">
+            <s:fill>
+                <s:LinearGradient rotation="90">
+                    <s:entries>
+                        <s:GradientEntry ratio="0"
+                                         alpha="{_model.fillAlpha}"
+                                         color="{_model.fillColour1}"/>
+                    </s:entries>
+                </s:LinearGradient>
+            </s:fill>
+            <s:stroke>
+                <s:SolidColorStroke joints="miter"
+                                    color="{_model.lineColour}"
+                                    alpha="{_model.lineAlpha}"
+                                    weight="{_model.lineWeight}"/>
+            </s:stroke>
+        </s:Rect>
+        <s:Rect radiusX="{_model.rectRadius}"
+                radiusY="{_model.rectRadius}"
+                right="0"
+                left="0"
+                top="0"
+                bottom="0"
+                visible="{_model.fillIsGradient}"
+                includeInLayout="{_model.fillIsGradient}">
+            <s:fill>
+                <s:LinearGradient rotation="90">
+                    <s:entries>
+                        <s:GradientEntry ratio="0"
+                                         alpha="{_model.fillAlpha}"
+                                         color="{_model.fillColour1}"/>
+                        <s:GradientEntry ratio="1"
+                                         alpha="{_model.fillAlpha}"
+                                         color="{_model.fillColour2}"/>
+                    </s:entries>
+                </s:LinearGradient>
+            </s:fill>
+            <s:stroke>
+                <s:SolidColorStroke joints="miter"
+                                    color="{_model.lineColour}"
+                                    alpha="{_model.lineAlpha}"
+                                    weight="{_model.lineWeight}"/>
+            </s:stroke>
+        </s:Rect>
+    </s:Group>
+
+    <!-- CIRCLE GEOMETRY -->
+    <s:Group id="grCircle"
+             right="0"
+             left="0"
+             top="0"
+             bottom="0"
+             visible="{grCircle.includeInLayout}"
+             includeInLayout="{_model.shapeType.equals(EnumShapeType.CIRCLE)}">
+        <s:Ellipse right="0"
+                   left="0"
+                   top="0"
+                   bottom="0"
+                   visible="{!_model.fillIsGradient}"
+                   includeInLayout="{!_model.fillIsGradient}">
+            <s:fill>
+                <s:LinearGradient rotation="90">
+                    <s:entries>
+                        <s:GradientEntry ratio="0"
+                                         alpha="{_model.fillAlpha}"
+                                         color="{_model.fillColour1}"/>
+                    </s:entries>
+                </s:LinearGradient>
+            </s:fill>
+            <s:stroke>
+                <s:SolidColorStroke joints="miter"
+                                    color="{_model.lineColour}"
+                                    alpha="{_model.lineAlpha}"
+                                    weight="{_model.lineWeight}"/>
+            </s:stroke>
+        </s:Ellipse>
+        <s:Ellipse right="0"
+                   left="0"
+                   top="0"
+                   bottom="0"
+                   visible="{_model.fillIsGradient}"
+                   includeInLayout="{_model.fillIsGradient}">
+            <s:fill>
+                <s:LinearGradient rotation="90">
+                    <s:entries>
+                        <s:GradientEntry ratio="0"
+                                         alpha="{_model.fillAlpha}"
+                                         color="{_model.fillColour1}"/>
+                        <s:GradientEntry ratio="1"
+                                         alpha="{_model.fillAlpha}"
+                                         color="{_model.fillColour2}"/>
+                    </s:entries>
+                </s:LinearGradient>
+            </s:fill>
+            <s:stroke>
+                <s:SolidColorStroke joints="miter"
+                                    color="{_model.lineColour}"
+                                    alpha="{_model.lineAlpha}"
+                                    weight="{_model.lineWeight}"/>
+            </s:stroke>
+        </s:Ellipse>
+    </s:Group>
+
+    <!-- LINE GEOMETRY -->
+    <s:Group id="grLine"
+             right="0"
+             left="0"
+             top="0"
+             bottom="0"
+             visible="{grLine.includeInLayout}"
+             includeInLayout="{_model.shapeType.equals(EnumShapeType.LINE)}">
+        <s:HGroup left="0"
+                  right="0"
+                  height="100%"
+                  verticalAlign="middle"
+                  gap="0">
+            <!-- Left arrow -->
+            <s:Path visible="{_model.arrows=='left' || _model.arrows == 'both'}"
+                    includeInLayout="{_model.arrows=='left' || _model.arrows == 'both'}"
+                    data="m 0 0 
+					l {_model.arrowLength} -{_model.arrowWidth/2}
+					l 0 {_model.arrowWidth}
+					l -{_model.arrowLength} -{_model.arrowWidth/2}">
+                <s:fill>
+                    <s:LinearGradient rotation="90">
+                        <s:entries>
+                            <s:GradientEntry ratio="0"
+                                             alpha="{_model.lineAlpha}"
+                                             color="{_model.lineColour}"/>
+                        </s:entries>
+                    </s:LinearGradient>
+                </s:fill>
+            </s:Path>
+            <!-- main line -->
+            <s:Line width="100%">
+                <s:stroke>
+                    <s:SolidColorStroke caps="square"
+                                        color="{_model.lineColour}"
+                                        alpha="{_model.lineAlpha}"
+                                        weight="{_model.lineWeight}"/>
+                </s:stroke>
+            </s:Line>
+            <!-- right arrow -->
+            <s:Path visible="{_model.arrows=='right' || _model.arrows == 'both'}"
+                    includeInLayout="{_model.arrows=='right' || _model.arrows == 'both'}"
+                    data="m 0 -{_model.arrowWidth/2}
+				l {_model.arrowLength} {_model.arrowWidth/2}
+				l -{_model.arrowLength} {_model.arrowWidth/2}
+				l 0 -{_model.arrowWidth/2}">
+                <s:fill>
+                    <s:LinearGradient rotation="90">
+                        <s:entries>
+                            <s:GradientEntry ratio="0"
+                                             alpha="{_model.lineAlpha}"
+                                             color="{_model.lineColour}"/>
+                        </s:entries>
+                    </s:LinearGradient>
+                </s:fill>
+            </s:Path>
+        </s:HGroup>
+    </s:Group>
+</s:Group>

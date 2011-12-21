@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/halo" width="2" height="100%">
+<fx:Script>
+	<![CDATA[
+		
+		[Bindable] public var col1:uint = 0xE0E0E0;
+		[Bindable] public var col2:uint = 0xCFCFCF;
+		
+	]]>
+</fx:Script>
+	<s:Line top="0" left="0" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="{col1}" weight="1" />
+		</s:stroke>
+	</s:Line>
+	<s:Line top="0" right="0" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="{col2}" weight="1" />
+		</s:stroke>
+	</s:Line>
+</s:Group>

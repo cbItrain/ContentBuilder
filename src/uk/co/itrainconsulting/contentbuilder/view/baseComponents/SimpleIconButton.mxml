@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleIconButtonSkin">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			[Bindable] public var icon:Class;
+			[Bindable] public var topLeftCornerRadius:Number = 0;
+			[Bindable] public var topRightCornerRadius:Number = 0;
+			[Bindable] public var bottomLeftCornerRadius:Number = 0;
+			[Bindable] public var bottomRightCornerRadius:Number = 0;
+		]]>
+	</fx:Script>
+</s:Button>

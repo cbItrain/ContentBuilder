@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         height="100%"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+         xmlns:menubar="uk.co.itrainconsulting.contentbuilder.view.menubar.*" xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*">
+    <fx:Script>
+        <![CDATA[
+            import mx.binding.utils.ChangeWatcher;
+            
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+            [Bindable]
+            public var padding:Number=15;
+
+            private var changeWatcherW:ChangeWatcher;
+            private var changeWatcherH:ChangeWatcher;
+
+            [Mediate(event="slideSelected")]
+            public function onSlideSelectionChange():void {
+                if (contentModel.fitToPage) {
+                    onFitToPage();
+                } else {
+                    onScaleSlide();
+                }
+            }
+
+            [Mediate(event="fitToPageSlideScaleEvent")]
+            public function onFitToPage():void {
+                if (changeWatcherW)
+                    changeWatcherW.unwatch();
+                if (changeWatcherH)
+                    changeWatcherH.unwatch();
+                changeWatcherW=ChangeWatcher.watch(grContainer, "width", onGrContainerDimChng);
+                changeWatcherH=ChangeWatcher.watch(grContainer, "height", onGrContainerDimChng);
+                if (contentModel.selectedSlide)
+                    onGrContainerDimChng();
+            }
+
+            [Mediate(event="scaleSlideSlideScaleEvent")]
+            public function onScaleSlide():void {
+                if (changeWatcherW)
+                    changeWatcherW.unwatch();
+                if (changeWatcherH)
+                    changeWatcherH.unwatch();
+                changeWatcherW=ChangeWatcher.watch(contentModel, "slideScale", onCMScaleSlideChange);
+                changeWatcherH=null;
+                onCMScaleSlideChange();
+            }
+
+            private function onCMScaleSlideChange(ev:Event=null):void {
+                grSlideCanvas.scaleY=grSlideCanvas.scaleX=contentModel.slideScale;
+            }
+
+            private function onGrContainerDimChng(ev:Event=null):void {
+                var trueHeight:Number=grContainer.height - label.height - padding - 18;
+                var scale:Number;
+                if (grContainer.width > trueHeight) {
+                    scale=trueHeight / contentModel.selectedSlide.height;
+                    if (contentModel.selectedSlide.width * scale > grContainer.width)
+                        scale=grContainer.width / contentModel.selectedSlide.width;
+                } else {
+                    scale=grContainer.width / contentModel.selectedSlide.width;
+                    if (contentModel.selectedSlide.height * scale > grContainer.height)
+                        scale=grContainer.height / contentModel.selectedSlide.height;
+                }
+                contentModel.slideScale=grSlideCanvas.scaleX=grSlideCanvas.scaleY=scale;
+            }
+			
+			[Mediate(event="ContentLoadedEvent.CONTENT_LOADED")]
+			public function onContentLoaded():void {
+				infoContainer.removeElement(loader);
+				nullSlide.visible = true;
+			}
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <s:DropShadowFilter id="dsf1"
+                            color="0x000000"
+                            blurX="3"
+                            blurY="3"
+                            distance="2"
+                            quality="3"
+                            alpha="0.5"
+                            angle="90"/>
+    </fx:Declarations>
+    <!-- Slide editor -->
+    <s:Group id="widthSetter"
+             width="100%"
+             height="100%"
+             visible="{contentModel.selectedSlide != null}"
+             includeInLayout="{contentModel.selectedSlide != null}">
+        <s:layout>
+            <s:VerticalLayout gap="0"
+                              paddingTop="{padding}"
+                              paddingLeft="{padding}"
+                              paddingRight="{padding}"
+                              paddingBottom="{padding}"/>
+        </s:layout>
+        <s:SkinnableContainer id="grContainer"
+                              skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.TwoWayScrollableGroupSkin"
+                              width="100%"
+                              height="100%">
+            <s:VGroup width="100%"
+                      height="100%"
+                      gap="{padding}">
+                <s:Label text="{contentModel.selectedSlide.title}"
+                         textAlign="left"
+                         width="100%"
+                         fontSize="18"
+                         fontWeight="bold"
+                         color="0xffffff"
+                         id="label"
+                         creationComplete="this.filters = [dsf1]"/>
+                <s:Group width="100%"
+                         height="100%">
+                    <s:layout>
+                        <s:HorizontalLayout horizontalAlign="center"
+                                            verticalAlign="middle"/>
+                    </s:layout>
+                    <s:Group id="grSlideCanvas">
+                        <view:SlideEditorStage id="editor"
+                                               contentModel="{contentModel}"/>
+                    </s:Group>
+                </s:Group>
+            </s:VGroup>
+        </s:SkinnableContainer>
+
+    </s:Group>
+    <!-- NULL slide, when no slide is selected on the model. -->
+    <s:Group width="100%"
+             height="100%"
+             visible="{contentModel.selectedSlide == null}"
+             includeInLayout="{contentModel.selectedSlide == null}">
+        <s:layout>
+            <s:VerticalLayout gap="0"
+                              paddingTop="{padding}"
+                              paddingLeft="{padding}"
+                              paddingRight="{padding}"
+                              paddingBottom="{padding}"/>
+        </s:layout>
+		<s:Group id="infoContainer" width="100%" height="100%">
+			<baseComponents:Loader id="loader"
+								   width="100%"
+								   height="100%"/>
+			<view:NullSlide id="nullSlide"
+							width="100%"
+							height="100%"
+							visible="false"/>
+		</s:Group>
+    </s:Group>
+</s:Group>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:flexlib="com.flexlib.*"
+					  xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+					  toolTip="Slides Toolbar">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			
+			[Inject] [Bindable]public var contentModel:ContentModel;
+			
+			[Embed(source="assets/icons/dragStripIcon.png")]
+			[Bindable] private var dragStripIconClass:Class;
+			
+			protected function onNewCanvasPopUpMenuClick(ev:Event):void {
+				if (popUpBtnNewCanvas.menu.selectedIndex == 0) {
+					newCanvas();
+				} else if (popUpBtnNewCanvas.menu.selectedIndex == 1) {
+					newCanvasFromTmp();
+				}
+			}
+			
+			private function newCanvasFromTmp():void {
+				var ev:Event = new Event(ContentController.SHOW_TEMPLATES,true);
+				dispatchEvent(ev);
+			}
+			
+			private function duplicateCanvas():void
+			{
+				var de:Event = new Event(ContentController.DUPLICATE_SLIDE, true);
+				dispatchEvent(de);
+			}
+			
+			private function newCanvas():void{
+				var ce:Event = new Event(ContentController.NEW_SLIDE, true);
+				dispatchEvent(ce);
+			}
+			
+			private function deleteClicked():void
+			{
+				if (contentModel.selectedType.equals(EnumObjectType.SLIDE))
+					dispatchEvent(new EditorEvent(EditorEvent.DELETE_SLIDE, true));
+				else if (contentModel.selectedType.ordinal > 0 && contentModel.selectedType.ordinal < 7)
+					dispatchEvent(new EditorEvent(EditorEvent.DELETE_MEDIA, true));
+			}
+			private function copyClicked():void{ 	
+				dispatchEvent(new Event(ContentController.OBJECT_COPIED, true));
+			}
+			private function pasteClicked():void{
+				dispatchEvent(new Event(ContentController.OBJECT_PASTED, true));
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:Image source="{dragStripIconClass}" />
+	
+	<baseComponents:IconPopUpButton id="popUpBtnNewCanvas"
+									skin="uk.co.itrainconsulting.contentbuilder.view.skins.IconPopUpButtonSkin" click="newCanvas()"
+									menuItems="{['New Slide','From Template']}" icon="@Embed('assets/icons/slide--plus.png')" 
+									toolTip="New Slide" onMenuClickHandler="{onNewCanvasPopUpMenuClick}" />
+	
+	<baseComponents:IconButton click="duplicateCanvas()" 
+							   icon="@Embed('assets/icons/slides.png')" 
+							   enabled="{contentModel.selectedSlide != null}" 
+							   showLabel="false" 
+							   label="Duplicate Slide" 
+							   toolTip="Duplicate Slide" />
+	
+	<mx:Spacer width="2" />
+	<baseComponents:VerticalSplitter height="100%" />
+	<mx:Spacer width="2" />
+	
+	<baseComponents:IconButton click="copyClicked()"
+							   icon="@Embed('assets/icons/document-copy.png')"
+							   showLabel="false" 
+							   label="Copy" 
+							   toolTip="Copy" 
+							   enabled="{!(contentModel.selectedType.equals(EnumObjectType.NONE) || contentModel.selectedType.equals(EnumObjectType.SLIDE))}" />
+	<baseComponents:IconButton click="pasteClicked()"
+							   icon="@Embed('assets/icons/clipboard.png')" 
+							   showLabel="false" 
+							   label="Paste" 
+							   toolTip="Paste" 
+							   enabled="{!(contentModel.copiedType == null &amp;&amp; contentModel.selectedType.equals(EnumObjectType.NONE))}"/>
+	<baseComponents:IconButton click="deleteClicked()" 
+							   icon="@Embed('assets/icons/trash.png')"
+							   showLabel="false"
+							   label="Delete" 
+							   enabled="{!(contentModel.selectedType.equals(EnumObjectType.NONE) || contentModel.selectedType == null)}" 
+							   toolTip="Delete" />
+</s:HGroup>

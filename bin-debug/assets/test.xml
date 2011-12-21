@@ -1,0 +1,56 @@
+<content>
+  <properties width="800" height="600" title="Objectives" backgroundColor="10066176" showSlideList="false" bgImage="" bgImageMethod="">
+    <stageColors>
+      <color>16777215</color>
+      <color>16777215</color>
+    </stageColors>
+  </properties>
+  <slides>
+    <slide title="Objectives" customDimensions="true" width="800" height="600" customBackground="true" bgCol1="16777215" bgCol2="16777215">
+      <slideObject width="800" height="59" x="0" y="421" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="NoCFFMyriad" SIZE="36" COLOR="#000000" LETTERSPACING="0" KERNING="0">Objectives</FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="CENTER"><FONT FACE="NoCFFMyriad" SIZE="36" COLOR="#000000" LETTERSPACING="0" KERNING="0">Order Capture</FONT></P></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="408" height="199" x="196" y="185" type="1" url="/templates/111/contentBuilder/1/logo_notype_template.png"/>
+      <slideObject width="740" height="100" x="30" y="495" type="3" shapeType="0" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16777215" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+      <slideObject width="101" height="33" x="30" y="554" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="10" COLOR="#000000" LETTERSPACING="0" KERNING="0">EA Confidential</FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="10" COLOR="#000000" LETTERSPACING="0" KERNING="0">For Internal Use Only</FONT></P></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="93" height="37" x="677" y="553" type="1" url="/templates/111/contentBuilder/1/logo_type_template.png"/>
+      <slideObject width="740" height="100" x="30" y="20" type="3" shapeType="0" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16777215" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+    </slide>
+    <slide title="New Slide">
+      <slideObject width="229" height="224" x="281" y="154" type="3" shapeType="1" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="457213" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+      <slideObject width="217" height="184" x="168" y="54" type="3" shapeType="1" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16714572" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+      <slideObject width="139" height="149" x="340" y="55" type="3" shapeType="1" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16248580" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+    </slide>
+    <slide title="Course Content" customDimensions="true" width="800" height="600" customBackground="true" bgCol1="16777215" bgCol2="16777215">
+      <slideObject width="712" height="330" x="42" y="87" type="2">
+        <text><![CDATA[<HTML><BODY><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0">The capture manual order process involves activities to enter sales orders received via email, phone or fax. A small percentage of orders are entered manually in Oracle compared to the number of orders that are imported electronically. This process includes activities to support the following categ</FONT></P></TEXTFORMAT><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0"></FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•New Release orders</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•Back catalogue orders </FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•Staff orders</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•Sample / Sales and Marketing orders</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•Close out orders</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•Orders from other EA entities (intercompany, e.g. Mexico)</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•Adjustment type orders</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•RMA</FONT></FONT></P></TEXTFORMAT></LI></UL><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0">•FSDU – Display orders</FONT></FONT></P></TEXTFORMAT></LI></UL><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0">The process is initiated by an order request via one of the described routes (email, fax, or phone call or non integrated call centre). Where appropriate, pre entry checks are initially performed to confirm the item entered is valid and/or confirm item availability to meet requested dates. All orders are created for an existing customer. In the event the customer does not exist, the Customer MDM team who enters and maintains Customer Master Data will be notified to create customer in Oracle (manual process). If the request is for a return, the process is directed to the Manage Returns and Exchanges process. For Sales Orders, the order header and lines are created by entering or defaulting information at the header/line level respectively. </FONT></P></TEXTFORMAT><UL><LI><TEXTFORMAT LEADING="2"><P ALIGN="left"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="1"><FONT KERNING="0"></FONT></FONT></P></TEXTFORMAT></LI></UL></BODY></HTML>]]></text>
+      </slideObject>
+      <slideObject width="740" height="41" x="30" y="30" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="24" COLOR="#000000" LETTERSPACING="0" KERNING="0"><B>Introduction</B></FONT></P></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="740" height="100" x="30" y="495" type="3" shapeType="0" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16777215" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+      <slideObject width="101" height="33" x="30" y="554" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="10" COLOR="#000000" LETTERSPACING="0" KERNING="0">EA Confidential</FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="10" COLOR="#000000" LETTERSPACING="0" KERNING="0">For Internal Use Only</FONT></P></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="93" height="37" x="677" y="553" type="1" url="/templates/111/contentBuilder/1/logo_type_template.png"/>
+      <slideObject width="740" height="100" x="30" y="20" type="3" shapeType="0" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16777215" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+    </slide>
+    <slide title="Course Content" customDimensions="true" width="800" height="600" customBackground="true" bgCol1="16777215" bgCol2="16777215">
+      <slideObject width="775" height="456" x="13" y="82" type="1" url="http://ea.stratus.itrain.co.uk/pls/download/F1814206622/Manual Order Capture Process.png"/>
+      <slideObject width="712" height="330" x="42" y="87" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"></FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><LI><FONT FACE="NoCFFMyriad" SIZE="12" COLOR="#000000" LETTERSPACING="0" KERNING="0"></FONT></LI></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="740" height="41" x="30" y="30" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="24" COLOR="#000000" LETTERSPACING="0" KERNING="0">Manual Order Capture Process</FONT></P></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="740" height="100" x="30" y="495" type="3" shapeType="0" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16777215" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+      <slideObject width="101" height="33" x="30" y="554" type="2">
+        <text><![CDATA[<TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="10" COLOR="#000000" LETTERSPACING="0" KERNING="0">EA Confidential</FONT></P></TEXTFORMAT><TEXTFORMAT LEADING="2"><P ALIGN="LEFT"><FONT FACE="NoCFFMyriad" SIZE="10" COLOR="#000000" LETTERSPACING="0" KERNING="0">For Internal Use Only</FONT></P></TEXTFORMAT>]]></text>
+      </slideObject>
+      <slideObject width="93" height="37" x="677" y="553" type="1" url="/templates/111/contentBuilder/1/logo_type_template.png"/>
+      <slideObject width="740" height="100" x="30" y="20" type="3" shapeType="0" rectRadius="0" lineColour="0" lineAlpha="1" lineWeight="1" fillColour1="16777215" fillColour2="13421772" fillAlpha="1" arrows="none" useHandCursor="false" arrowLength="10" arrowWidth="4"/>
+    </slide>
+  </slides>
+</content>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/halo" width="100%"
+		  verticalAlign="middle">
+	<fx:Script>
+		<![CDATA[
+			import spark.events.TextOperationEvent;
+			
+			[Bindable] public var label:String = "Label";
+			private var _value:String = "";
+			[Bindable] 
+			public function get value():String
+			{
+				return field.text;
+			}
+
+			public function set value(value:String):void
+			{
+				_value = value;
+				field.text = value;
+			}
+
+			protected function textinput1_changeHandler(event:TextOperationEvent):void
+			{
+				dispatchEvent(event);
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[Event(name="change", type="spark.events.TextOperationEvent")]
+	</fx:Metadata>
+	<s:Label text="{label}" />
+	<s:TextInput id="field" width="100%" text="{value}" change="textinput1_changeHandler(event)" />
+</s:HGroup>

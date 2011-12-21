@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"  title="Choose a colour"
+		 xmlns:s="library://ns.adobe.com/flex/spark" skinClass="uk.co.itrainconsulting.components.colourpick.skin.ColourPickDraggablePanelSkin"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" addedToStage="added()"
+		 xmlns:view="itrain.apps.ym.productivity.view.*" >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Metadata> 
+		[Event(name="change", type="uk.co.itrainconsulting.components.colourpick.events.ColourPickEvent")] 
+		[Event(name="selected", type="uk.co.itrainconsulting.components.colourpick.events.ColourPickEvent")] 
+	</fx:Metadata> 
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.TextOperationEvent;
+			
+			import uk.co.itrainconsulting.components.colourpick.events.ColourPickEvent;
+			
+			
+			private function added():void{
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_DOWN, removeMe);
+			}
+			private function removeMe(e:MouseEvent):void{
+				if (e.localX < 0 || e.localX > this.width || e.localY < 0 || e.localY > this.height)
+				{
+					okHandler();
+				}
+			}
+			public function setStartColour(col:uint):void{
+				oldCol = col;
+				colourFromClick = false;
+				setNewUint(col);
+			}
+			protected function okHandler():void
+			{
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_DOWN, removeMe);
+				
+				var e:ColourPickEvent = new ColourPickEvent(newCol, ColourPickEvent.SELECTED);
+				dispatchEvent(e);
+				
+				PopUpManager.removePopUp(this);
+			}
+			public function closeClicked():void{
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_DOWN, removeMe);
+				setNewUint(oldCol);	
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function revertCol():void
+			{
+				setNewUint(oldCol);				
+			}
+			
+			
+			
+			// uses newCol uint to populate text fields
+			private function generateTextFieldValues(except:String = ""):void{
+				var rgb:Array = HexToRGB(newCol);
+				var hsb:Array = RGBtoHSV(rgb[0],rgb[1],rgb[2]);
+				if (except != "H")
+					inputH.text = hsb[0];
+				if (except != "S")
+					inputS.text = hsb[1];
+				if (except != "B")
+					inputB.text = hsb[2];
+				if (except != "Hex")
+					inputHex.text = RGBToHex(rgb[0],rgb[1],rgb[2]).toString(16).toUpperCase();
+			}
+			
+			// textEntryHandlers
+			protected function inputHex_changeHandler(event:TextOperationEvent):void
+			{
+				var newVal:uint = uint("0x"+TextInput(event.target).text); 
+				textFieldEdited = "Hex";
+				setNewUint(newVal);
+			}
+			protected function inputH_changeHandler(event:TextOperationEvent):void
+			{
+				var newRGB:Array = HSVtoRGB(Number(TextInput(event.target).text), hsb[1], hsb[2]);
+				var newVal:uint = RGBToHex(newRGB[0],newRGB[1],newRGB[2]);
+				textFieldEdited = "H";
+				setNewUint(newVal);
+			}
+			protected function inputS_changeHandler(event:TextOperationEvent):void
+			{
+				var newRGB:Array = HSVtoRGB(hsb[0], Number(TextInput(event.target).text), hsb[2]);
+				var newVal:uint = RGBToHex(newRGB[0],newRGB[1],newRGB[2]);
+				textFieldEdited = "S";
+				setNewUint(newVal);
+			}
+			protected function inputB_changeHandler(event:TextOperationEvent):void
+			{
+				var newRGB:Array = HSVtoRGB(hsb[0], hsb[1], Number(TextInput(event.target).text));
+				var newVal:uint = RGBToHex(newRGB[0],newRGB[1],newRGB[2]);
+				textFieldEdited = "B";
+				setNewUint(newVal);
+			}
+			
+			
+			
+			
+			private var hsb:Array = [];
+			private var rgb:Array = [];
+			private var huergb:Array = [];
+			private var textFieldEdited:String = "";
+			private var colourFromClick:Boolean = false;
+			private function setNewUint(val:uint):void{
+				rgb = HexToRGB(val);
+				hsb = RGBtoHSV(rgb[0],rgb[1],rgb[2]);
+				newCol = val;
+				huergb = HSVtoRGB(hsb[0],100,100);
+				if (hsb[1] > 0 && hsb[2] < 100)
+					hue = RGBToHex(huergb[0],huergb[1],huergb[2]);
+				if (!colourFromClick)
+					positionPointers();
+				colourFromClick = false;
+				updateTextFields();
+				var e:ColourPickEvent = new ColourPickEvent(newCol);
+				dispatchEvent(e);
+			}
+			private function positionPointers():void{
+				if (!colourFromClick)
+				{
+					huePip.left = -2 + (hueSliderGroup.width-4) * (hsb[0]/360);
+					pointMarker.left = -2 + (colourPickArea.width - 2)* (hsb[1]/100);
+					pointMarker.top = -2 + (colourPickArea.height - 2)* ((100-hsb[2])/100);
+				}
+			}
+			private function updateTextFields():void{
+				if (textFieldEdited != "H")
+					inputH.text = hsb[0];
+				if (textFieldEdited != "S")
+					inputS.text = hsb[1];
+				if (textFieldEdited != "B")
+					inputB.text = hsb[2];
+				if (textFieldEdited != "Hex")
+					inputHex.text = RGBToHex(rgb[0],rgb[1],rgb[2]).toString(16).toUpperCase();
+				textFieldEdited = "";
+			}
+			
+			// Colour pick main area handlers
+			private function colourPickDown(e:MouseEvent):void{
+				colourFromClick = true;
+				var localPos:Point = colourPickArea.globalToLocal(new Point(e.stageX, e.stageY));
+				setColourAtPoint(localPos);
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, colourPickUpHandler);
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_MOVE, colourPickMoveHandler);
+				this.mouseEnabled = false;
+				this.mouseChildren = false;
+			}
+			private var colourGrabBMD:BitmapData = new BitmapData(128,128);
+			private var m:Matrix = new Matrix(1,0,0,1,1,1);
+			private function colourPickMoveHandler(e:MouseEvent):void
+			{
+				colourFromClick = true;
+				var localPos:Point = colourPickArea.globalToLocal(new Point(e.stageX, e.stageY));
+				setColourAtPoint(localPos);
+			}
+			private function colourPickUpHandler(e:MouseEvent):void
+			{
+				colourFromClick = true;
+				var localPos:Point = colourPickArea.globalToLocal(new Point(e.stageX, e.stageY));
+				setColourAtPoint(localPos);
+				this.mouseEnabled = true;
+				this.mouseChildren = true;
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_MOVE, colourPickMoveHandler);
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, colourPickUpHandler);
+			}
+			private var colourPipPoint:Point;
+			private function setColourAtPoint(p:Point):void{
+				colourPipPoint = p;
+				var res:Point = new Point();
+				if (p.x < 2)
+					res.x = 2;
+				else if (p.x > colourPickArea.width -2.1)
+					res.x = colourPickArea.width -2.1;
+				else
+					res.x = p.x;
+				if (p.y < 2)
+					res.y = 2;
+				else if (p.y > colourPickArea.height -2.1)
+					res.y = colourPickArea.height -2.1;
+				else
+					res.y = p.y;
+				pointMarker.left = res.x - 3;
+				pointMarker.top = res.y - 3;
+				colourGrabBMD.draw(colourPickArea, m);
+				setNewUint(colourGrabBMD.getPixel(res.x, res.y));
+			}
+			private function hueSliderDown(e:MouseEvent):void{
+				colourFromClick = true;
+				var localPos:Point = hueSliderGroup.globalToLocal(new Point(e.stageX, e.stageY));
+				setHueAtPoint(localPos);
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, hueUpHandler);
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_MOVE, hueMoveHandler);
+				this.mouseEnabled = false;
+				this.mouseChildren = false;
+			}
+			private function hueMoveHandler(e:MouseEvent):void{
+				colourFromClick = true;
+				var localPos:Point = hueSliderGroup.globalToLocal(new Point(e.stageX, e.stageY));
+				setHueAtPoint(localPos);
+			}
+			private function hueUpHandler(e:MouseEvent):void{
+				colourFromClick = true;
+				var localPos:Point = hueSliderGroup.globalToLocal(new Point(e.stageX, e.stageY));
+				setHueAtPoint(localPos);
+				this.mouseEnabled = true;
+				this.mouseChildren = true;
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, hueUpHandler);
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_MOVE, hueMoveHandler);
+			}
+			private var hueGrabBMD:BitmapData = new BitmapData(215,15);
+			private function setHueAtPoint(p:Point):void{
+				var res:Point = new Point();
+				if (p.x < 2)
+					res.x = 2;
+				else if (p.x > hueSliderGroup.width -2.1)
+					res.x = hueSliderGroup.width -2.1;
+				else
+					res.x = p.x;
+				huePip.left = res.x - 3;
+				hueGrabBMD.draw(hueSliderGroup, m);
+				var newHue:uint = hueGrabBMD.getPixel(res.x, 9);
+				hue = newHue;
+				var hueRBG:Array = HexToRGB(newHue);
+				var newRGB:Array = HSVtoRGB(RGBtoHSV(hueRBG[0],hueRBG[1],hueRBG[2])[0], hsb[1], hsb[2]);
+				setNewUint(RGBToHex(newRGB[0], newRGB[1], newRGB[2]));
+			}
+			
+			
+/******************************************************************************************************************************/
+			
+			// Colour conversion functions
+			// from http://blog.mindfock.com/rgb-to-hexadecimal-to-hsv-conversion-in-as3/ for reference
+			
+			private function RGBToHex(r:uint, g:uint, b:uint):uint{
+				var hex:uint = (r << 16 | g << 8 | b);
+				return hex;
+			}
+			
+			private function HexToRGB(hex:uint):Array{
+				var rgb:Array = [];
+				
+				var r:uint = hex >> 16 & 0xFF;
+				var g:uint = hex >> 8 & 0xFF;
+				var b:uint = hex & 0xFF;
+				
+				rgb.push(r, g, b);
+				return rgb;
+			}
+			
+			private function RGBtoHSV(r:uint, g:uint, b:uint):Array{
+				var max:uint = Math.max(r, g, b);
+				var min:uint = Math.min(r, g, b);
+				
+				var hue:Number = 0;
+				var saturation:Number = 0;
+				var value:Number = 0;
+				
+				var hsv:Array = [];
+				
+				//get Hue
+				if(max == min){
+					hue = 0;
+				}else if(max == r){
+					hue = (60 * (g-b) / (max-min) + 360) % 360;
+				}else if(max == g){
+					hue = (60 * (b-r) / (max-min) + 120);
+				}else if(max == b){
+					hue = (60 * (r-g) / (max-min) + 240);
+				}
+				
+				//get Value
+				value = max;
+				
+				//get Saturation
+				if(max == 0){
+					saturation = 0;
+				}else{
+					saturation = (max - min) / max;
+				}
+				
+				hsv = [Math.round(hue), Math.round(saturation * 100), Math.round(value / 255 * 100)];
+				return hsv;
+				
+			}
+			
+			private function HSVtoRGB(h:Number, s:Number, v:Number):Array{
+				var r:Number = 0;
+				var g:Number = 0;
+				var b:Number = 0;
+				var rgb:Array = [];
+				
+				var tempS:Number = s / 100;
+				var tempV:Number = v / 100;
+				
+				var hi:int = Math.floor(h/60) % 6;
+				var f:Number = h/60 - Math.floor(h/60);
+				var p:Number = (tempV * (1 - tempS));
+				var q:Number = (tempV * (1 - f * tempS));
+				var t:Number = (tempV * (1 - (1 - f) * tempS));
+				
+				switch(hi){
+					case 0: r = tempV; g = t; b = p; break;
+					case 1: r = q; g = tempV; b = p; break;
+					case 2: r = p; g = tempV; b = t; break;
+					case 3: r = p; g = q; b = tempV; break;
+					case 4: r = t; g = p; b = tempV; break;
+					case 5: r = tempV; g = p; b = q; break;
+				}
+				
+				rgb = [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+				return rgb;
+			}
+
+			[Bindable]private var hue:uint = 0xFF0044;
+			[Bindable]public var newCol:uint = 0xffffff;
+			[Bindable]public var oldCol:uint = 0xeeeeee;
+			
+
+
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" gap="0" paddingLeft="5" paddingTop="5" >
+		<s:Group width="217" height="15" mouseDown="hueSliderDown(event)" id="hueSliderGroup" >
+			<s:Rect left="0" right="0" bottom="0" height="11">
+				<s:fill>
+					<s:SolidColor color="0x000000" />
+				</s:fill>
+			</s:Rect>
+			<s:BitmapImage bottom="1" left="1" right="1"
+				source="@Embed('hueSlider.png')" width="215" height="9" />
+			<s:BitmapImage top="0" left="-2" id="huePip"
+						   source="@Embed('pip.png')" width="7" height="4" />
+		</s:Group>
+		<s:HGroup paddingTop="5">
+			<!-- Colour picker area -->
+			<s:Group width="130" height="130" >
+				<s:Group id="colourPickArea" 
+					width="130" height="130" mouseDown="colourPickDown(event)" >
+					<s:Rect left="0" right="0" top="0" bottom="0">
+						<s:fill> 
+							<s:SolidColor color="0x000000"/>
+						</s:fill> 
+					</s:Rect>
+					<s:Rect left="1" right="1" top="1" bottom="1">
+						<s:fill> 
+							<s:SolidColor color="0xffffff"/>
+						</s:fill> 
+					</s:Rect>
+					<!-- hue rect -->
+					<s:Rect left="1" right="1" top="1" bottom="1">
+						<s:fill> 
+							<s:LinearGradient rotation="0"> 
+								<s:entries>  
+									<s:GradientEntry ratio="0.02" alpha="1" color="#ffffff"/>
+									<s:GradientEntry ratio="0.98" alpha="1" color="{hue}"/>
+								</s:entries> 
+							</s:LinearGradient> 
+						</s:fill> 
+					</s:Rect>
+					<s:Rect left="1" right="1" top="1" bottom="1" blendMode="multiply">
+						<s:fill> 
+							<s:LinearGradient rotation="90"> 
+								<s:entries>  
+									<s:GradientEntry ratio="0.02" alpha="1" color="#ffffff"/>
+									<s:GradientEntry ratio="0.98" alpha="1" color="#000000"/>
+								</s:entries> 
+							</s:LinearGradient> 
+						</s:fill> 
+					</s:Rect>
+					</s:Group>
+				<s:Ellipse id="pointMarker" width="6" height="6" top="-3" left="-3">
+					<s:stroke>
+						<s:SolidColorStroke color="0x000000" />
+					</s:stroke>
+				</s:Ellipse>
+			</s:Group>
+			<s:VGroup height="130" paddingLeft="10" >
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:Label textAlign="right" width="15" text="H" />
+					<s:TextInput width="55" id="inputH" change="inputH_changeHandler(event)" />
+				</s:HGroup>
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:Label textAlign="right" width="15" text="S" />
+					<s:TextInput width="55" id="inputS" change="inputS_changeHandler(event)" />
+				</s:HGroup>
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:Label textAlign="right" width="15" text="B" />
+					<s:TextInput width="55" id="inputB" change="inputB_changeHandler(event)" />
+				</s:HGroup>
+				<mx:Spacer height="100%" />
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:Label textAlign="right" width="15" text="#" />
+					<s:TextInput width="55" id="inputHex" change="inputHex_changeHandler(event)" />
+				</s:HGroup>
+			</s:VGroup>
+		</s:HGroup>
+		<s:Group width="100%">
+			<s:HGroup width="100%" height="100%" verticalAlign="bottom"
+					  paddingBottom="5" paddingLeft="0" paddingRight="5" paddingTop="5">
+				<!-- new colour swatch -->
+				<s:Group width="30" height="30">
+					<s:Rect left="0" right="0" top="0" bottom="0">
+						<s:fill> 
+							<s:SolidColor color="0x000000"/>
+						</s:fill> 
+					</s:Rect>
+					<s:Rect left="1" right="1" top="1" bottom="1">
+						 <s:fill> 
+							 <s:SolidColor color="{newCol}"/>
+						 </s:fill> 
+					 </s:Rect>
+				</s:Group>
+				<!-- old colour swatch -->
+				<s:Group width="30" height="30" click="revertCol()">
+					<s:Rect left="0" right="0" top="0" bottom="0">
+						<s:fill> 
+							<s:SolidColor color="0x000000"/>
+						</s:fill> 
+					</s:Rect>
+					<s:Rect left="1" right="1" top="1" bottom="1">
+						<s:fill> 
+							<s:SolidColor color="{oldCol}"/>
+						</s:fill> 
+					</s:Rect>
+				</s:Group>
+				
+				<mx:Spacer width="100%" />
+				<s:Button label="OK" click="okHandler()"/>
+				<s:Button label="Cancel" click="closeClicked()"/>
+			</s:HGroup>
+		</s:Group>
+	</s:VGroup>
+</s:Panel>

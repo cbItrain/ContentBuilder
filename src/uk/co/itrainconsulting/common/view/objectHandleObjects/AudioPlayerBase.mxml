@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+		 implements="uk.co.itrainconsulting.common.view.objectHandleObjects.IModelAware">
+    <fx:Script>
+        <![CDATA[		
+			import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.MuteButtonSkin;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.PauseButtonSkin;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.PlayButtonSkin;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.StopButtonSkin;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.UnMuteButtonSkin;
+
+            [Bindable]
+            public var editorMode:Boolean=false;
+			[Bindable]
+			protected var isPlaying:Boolean=false;
+			[Bindable]
+			protected var isMuted:Boolean=false;
+
+			private var loopCount:int=0;
+			
+			protected var sound:Sound=new Sound();
+			protected var pausePos:Number=0;
+			protected var channel:SoundChannel;
+			protected var trans:SoundTransform=new SoundTransform();
+			protected var totalLength:Number=0;
+			protected var currentPos:Number=0;
+			protected var source:String="";
+			
+            private function playSound():void {
+                if (model) {
+                    if ((model as AudioMedia).loop) {
+                        loopCount=9999;
+                    } else {
+                        loopCount=0;
+                    }
+                }
+                if (source != "") {
+                    channel=sound.play(pausePos, loopCount, trans);
+                    channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+                    isPlaying=true;
+                }
+            }
+			
+			//to be overriden
+			public function get model():MediaObject {
+				return null;
+			}
+
+            public function initSound():void {
+                //source = model.media.url;
+                sound=new Sound();
+                var request:URLRequest=new URLRequest(source);
+                sound.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+                sound.load(request);
+                pausePos=0;
+                if ((model as AudioMedia).muted) {
+                    trans.volume=0;
+                    isMuted=true;
+                } else
+                    isMuted=false;
+
+                if ((model as AudioMedia).autoPlay && !editorMode) {
+                    playSound();
+                } else
+                    isPlaying=false;
+            }
+
+            private function soundComplete(e:Event):void {
+                stopSound();
+            }
+
+            private function muteSound(v:Boolean):void {
+                if (v) {
+                    trans.volume=0;
+                    if (channel) {
+                        channel.soundTransform=trans;
+
+                    }
+                    isMuted=true;
+                } else {
+                    trans.volume=1;
+                    if (channel)
+                        channel.soundTransform=trans;
+                    isMuted=false;
+                }
+            }
+			
+			private function runner(e:Event):void {
+				totalLength=sound.length;
+				if (channel)
+					currentPos=channel.position;
+				if (source != "")
+					timeDisplay.text=msToMinutes(currentPos) + " / " + msToMinutes(totalLength);
+				else
+					timeDisplay.text="0:00 / 0:00";
+			}
+
+            private function progressHandler(event:ProgressEvent):void {
+                sound.removeEventListener(ProgressEvent.PROGRESS, progressHandler);
+                addEventListener(Event.ENTER_FRAME, runner);
+            }
+
+            private function msToMinutes(val:Number):String {
+                var minutes:Number=Math.floor(val / 1000 / 60);
+                var seconds:Number=Math.floor(val / 1000) % 60;
+                return minutes + ":" + ["0", ""][Number(seconds >= 10)] + seconds;
+            }
+
+            private function pauseSound():void {
+                if (source != "") {
+                    pausePos=channel.position;
+                    channel.stop();
+                    isPlaying=false;
+                }
+            }
+
+            public function stopSound():void {
+                if (source != "" && isPlaying) {
+                    pausePos=0;
+                    currentPos=0;
+                    channel.stop();
+                    channel=sound.play(0, loopCount, trans);
+                    channel.stop();
+                    isPlaying=false;
+                }
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <s:Rect radiusX="9"
+            radiusY="9"
+            height="100%"
+            width="100%">
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry ratio="0"
+                                     alpha="0.5"
+                                     color="#000000"/>
+                    <s:GradientEntry ratio="1"
+                                     alpha="0.5"
+                                     color="#000000"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:HGroup height="100%"
+              width="100%"
+              paddingBottom="4"
+              paddingTop="4"
+              paddingLeft="10"
+              paddingRight="10"
+              gap="0"
+              verticalAlign="middle">
+        <mx:Spacer width="100%"/>
+        <s:Button id="playBTN"
+                  visible="{!isPlaying}"
+                  includeInLayout="{!isPlaying}"
+                  label="Play"
+                  click="playSound()"
+                  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.PlayButtonSkin"/>
+        <s:Button id="pauseBTN"
+                  visible="{isPlaying}"
+                  includeInLayout="{isPlaying}"
+                  label="Pause"
+                  click="pauseSound()"
+                  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.PauseButtonSkin"/>
+        <s:Button id="stopBTN"
+                  label="Stop"
+                  click="stopSound()"
+                  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.StopButtonSkin"/>
+        <mx:Spacer width="10"/>
+        <s:Label paddingTop="3"
+                 color="0xffffff"
+                 id="timeDisplay"
+                 text="0:00 / 0:00"/>
+        <mx:Spacer width="10"/>
+        <s:Button id="muteBTN"
+                  visible="{!isMuted}"
+                  includeInLayout="{!isMuted}"
+                  label="Mute"
+                  click="muteSound(true)"
+                  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.MuteButtonSkin"/>
+        <s:Button id="unMuteBTN"
+                  visible="{isMuted}"
+                  includeInLayout="{isMuted}"
+                  label="Unmute"
+                  click="muteSound(false)"
+                  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.audioandvideo.UnMuteButtonSkin"/>
+        <mx:Spacer width="100%"/>
+    </s:HGroup>
+</s:Group>

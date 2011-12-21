@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+		  width="100%"
+		  height="100%"
+		  paddingTop="5"
+		  paddingLeft="5"
+		  paddingRight="5"
+		  paddingBottom="5"
+		  removedFromStage="onRemovedFromStage()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+
+			[Bindable]
+			private var _itemsList:ArrayCollection;
+			[Bindable]
+			public var itemRenderer:ClassFactory;
+			[Bindable]
+			public var mediaType:EnumObjectType;
+			[Bindable]
+			public var labelField:String;
+
+			[Bindable]
+			public var selectHandler:Function;
+			[Bindable]
+			public var closeHandler:Function;
+
+			public function okClickHandler():void
+			{
+				vidPreview.stopPlayback();
+				audPreview.stopPlayback();
+				var o:Object;
+				if (tbTabBar.selectedIndex == 0)
+					o=lstList.selectedItem;
+				else if (urlPanel.selectedItem != null)
+				{
+					o=urlPanel.selectedItem;
+				}
+				if (selectHandler != null && o != null)
+				{
+					selectHandler(o);
+				}
+			}
+
+			public function cancelClickHandler():void
+			{
+				if (closeHandler != null)
+					closeHandler();
+			}
+
+			private function onRemovedFromStage():void
+			{
+				tbTabBar.selectedIndex=0;
+			}
+
+			[Bindable]
+			public function set itemsList(value:ArrayCollection):void
+			{
+				_itemsList=value;
+			}
+
+			public function get itemsList():ArrayCollection
+			{
+				return _itemsList;
+			}
+		]]>
+	</fx:Script>
+		<mx:TabNavigator id="tbTabBar"
+						 width="100%"
+						 height="100%"
+						 borderColor="#B4B4B4"
+						 borderVisible="true">
+			<s:NavigatorContent label="Assets Library"
+								width="100%"
+								height="100%">
+				<s:Group width="100%"
+						 height="100%">
+					<s:HGroup width="100%"
+							  height="100%"
+							  verticalAlign="middle"
+							  horizontalAlign="center"
+							  visible="{tbTabBar.selectedIndex == 0 &amp;&amp; itemsList == null}"
+							  includeInLayout="{tbTabBar.selectedIndex == 0 &amp;&amp; itemsList == null}">
+						<!-- loader graphic -->
+						<mx:SWFLoader id="loaderGraphic"
+									  source="@Embed('assets/basicBlackPreloader.swf')"
+									  width="100"
+									  height="100"/>
+					</s:HGroup>
+					<s:HGroup width="100%"
+							  height="100%"
+							  gap="0"
+							  visible="{tbTabBar.selectedIndex == 0 &amp;&amp; itemsList != null}"
+							  includeInLayout="{tbTabBar.selectedIndex == 0 &amp;&amp; itemsList != null}">
+						<s:List id="lstList"
+								dataProvider="{itemsList}"
+								width="100%"
+								height="100%"
+								minWidth="{tbTabBar.width/2}"
+								doubleClickEnabled="true"
+								doubleClick="okClickHandler()"
+								itemRenderer="{itemRenderer}"
+								labelField="{labelField}"
+								skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin">
+							<s:layout>
+								<s:TileLayout/>
+							</s:layout>
+						</s:List>
+						<view:VideoPreview id="vidPreview"
+										   width="{tbTabBar.width/2}"
+										   height="100%"
+										   includeInLayout="{mediaType.equals(EnumObjectType.VIDEO)}"
+										   visible="{vidPreview.includeInLayout}"
+										   selected="{lstList.selectedItem}"/>
+						<view:AudioPreview id="audPreview"
+										   width="180"
+										   height="100%"
+										   includeInLayout="{mediaType.equals(EnumObjectType.AUDIO)}"
+										   visible="{audPreview.includeInLayout}"
+										   selected="{lstList.selectedItem}"/>
+						<view:TemplateDescription id="templateDesc"
+												  width="200"
+												  height="100%"
+												  includeInLayout="{mediaType.equals(EnumObjectType.TEMPLATE)}"
+												  visible="{templateDesc.includeInLayout}"
+												  selected="{lstList.selectedItem}"/>
+					</s:HGroup>
+				</s:Group>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Web Link"
+								width="100%"
+								height="100%"
+								enabled="{!mediaType.equals(EnumObjectType.TEMPLATE)}">
+				<view:URLMediaPanel id="urlPanel"
+									width="100%"
+									mediaType="{mediaType}"
+									height="100%"/>
+			</s:NavigatorContent>
+		</mx:TabNavigator>
+</s:VGroup>

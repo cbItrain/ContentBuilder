@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   title="Select Asset"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.DraggableTitleWindowSkin"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+			   xmlns:cv="uk.co.itrainconsulting.common.view.*"
+			   width="650"
+			   height="500"
+			   minWidth="650"
+			   minHeight="300"
+			   removedFromStage="onRemoveFromStage()"
+			   xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+			   close="onCancelClick()">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.events.ModelChange;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			import mx.events.DynamicEvent;
+			
+			import org.swizframework.core.SwizManager;
+			import org.swizframework.core.mxml.Swiz;
+			
+			import uk.co.itrainconsulting.common.utils.ImageRepository;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
+			import uk.co.itrainconsulting.contentbuilder.model.AssetsRepository;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.contentbuilder.model.UploadBean;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			import uk.co.itrainconsulting.contentbuilder.utils.AssetUtils;
+			import uk.co.itrainconsulting.contentbuilder.view.baseComponents.SlideListButton;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.AssetItemRenderer;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.ImagePreviewIR;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.TemplateIR;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.VideoPreviewIR;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin;
+
+			[Bindable]
+			public var closeHandler:Function;
+			[Bindable]
+			public var selectHandler:Function;
+			[Bindable]
+			public var mediaType:EnumObjectType = EnumObjectType.NONE;
+			
+			[Bindable]
+			public var uploadEnabled:Boolean = true;
+
+			[Inject]
+			[Bindable]
+			public var repository:AssetsRepository;
+			[Dispatcher]
+			public var dispatcher:IEventDispatcher;
+
+			private static const imageFilter:FileFilter=AssetUtils.getFileFilters("Images", AssetUtils.imageExt);
+			private static const audioFilter:FileFilter=AssetUtils.getFileFilters("Audio", AssetUtils.audioExt);
+			private static const videoFilter:FileFilter=AssetUtils.getFileFilters("Videos", AssetUtils.videoExt);
+
+			private const _tabs:ArrayCollection=new ArrayCollection(["Attachments", "Assets Library", "Web Link"]);
+
+			public function refresh():void {
+				var type:String;
+				if (mediaType == null) {
+					type = ContentController.GET_ALL_ASSETS_LIST;
+				} else if (mediaType.equals(EnumObjectType.TEMPLATE)) {
+					type = ContentController.GET_TEMPLATE_LIST;	
+				} else {
+					if (rbImage.selected)
+						type=ContentController.GET_IMAGE_LIST;
+					else if (rbAudio.selected)
+						type=ContentController.GET_AUDIO_LIST;
+					else
+						type=ContentController.GET_VIDEO_LIST;
+				}
+				var ev:DynamicEvent = new DynamicEvent(type , true);
+				ev.isAttachment=isAttachmentMode();
+				dispatcher.dispatchEvent(ev);
+				spinnerContainer.visible=spinnerContainer.includeInLayout=true;
+				lstList.visible=false;
+			}
+
+			[Mediate(event='AssetsRepostioryAssetsUpdated')]
+			public function onAssetUpdate():void {
+				if (this.isPopUp) {
+					callLater(function():void {
+						applyFilterFunction();
+						lstList.dataProvider=repository.assets;
+					});
+				}
+			}
+
+			[Mediate(event="AssetsRepositoryAssetsRetrieved")]
+			public function onAssetsRetrieval():void {
+				spinnerContainer.visible=spinnerContainer.includeInLayout=false;
+				lstList.visible=true;
+			}
+
+			private function applyFilterFunction():void {
+				switch (mediaType.ordinal) {
+					case EnumObjectType.IMAGE.ordinal:
+						repository.assets.filterFunction=filterImages;
+						break;
+					case EnumObjectType.AUDIO.ordinal:
+						repository.assets.filterFunction=filterAudios;
+						break;
+					case EnumObjectType.VIDEO.ordinal:
+						repository.assets.filterFunction=filterVideos;
+						break;
+					default:
+						repository.assets.filterFunction=null;
+				}
+				repository.assets.refresh();
+			}
+
+			private function onRemoveFromStage():void {
+				repository.assets.filterFunction=filterEmpty;
+				repository.assets.refresh();
+			}
+
+			private function filterEmpty(item:Object):Boolean {
+				return false;
+			}
+
+			private function filterImages(item:Object):Boolean {
+				var ao:AssetObject=AssetObject(item);
+				return ao.isAttachment == isAttachmentMode() && ao.type.equals(EnumObjectType.IMAGE);
+			}
+
+			private function filterVideos(item:Object):Boolean {
+				var ao:AssetObject=AssetObject(item);
+				return ao.isAttachment == isAttachmentMode() && ao.type.equals(EnumObjectType.VIDEO);
+			}
+
+			private function filterAudios(item:Object):Boolean {
+				var ao:AssetObject=AssetObject(item);
+				return ao.isAttachment == isAttachmentMode() && ao.type.equals(EnumObjectType.AUDIO);
+			}
+
+			private function isAttachmentMode():Boolean {
+				return tabBar.selectedIndex == 0;
+			}
+
+			//resize props----------------------------------------------------------------------------------------
+			private var _resizeTimer:Timer=new Timer(10);
+			private var _resizeInitPoint:Point;
+			private var _resizeHandle:UIComponent;
+			private var draggedPosition:Point=new Point();
+
+			protected function resizeMouseDown():void {
+				draggedPosition.x=this.x;
+				draggedPosition.y=this.y;
+				_resizeInitPoint=new Point(resizeButton.mouseX, resizeButton.mouseY);
+				_resizeTimer.addEventListener(TimerEvent.TIMER, onResizeTimerTick, false, 0, true);
+				this.parent.addEventListener(MouseEvent.MOUSE_UP, globalMouseUp);
+				_resizeTimer.start();
+			}
+
+			protected function globalMouseUp(e:MouseEvent):void {
+				resizeMouseUp();
+			}
+
+			protected function resizeMouseUp():void {
+				this.parent.removeEventListener(MouseEvent.MOUSE_UP, globalMouseUp);
+				_resizeTimer.stop();
+				_resizeTimer.removeEventListener(TimerEvent.TIMER, onResizeTimerTick);
+			}
+
+			private function onResizeTimerTick(event:TimerEvent):void {
+				var currentMousePoint:Point=new Point(resizeButton.mouseX, resizeButton.mouseY);
+				var gPoint:Point=resizeButton.localToGlobal(currentMousePoint);
+				var lPoint:Point=this.parent.globalToLocal(gPoint);
+				var newWidth:Number=this.width + lPoint.x - (this.width + this.x) + (resizeButton.width / 2) + 2;
+				var newHeight:Number=this.height + lPoint.y - (this.height + this.y) + (resizeButton.height / 2) + 2;
+				if (newWidth > this.minWidth) {
+					this.width=newWidth;
+				}
+				if (newHeight > this.minHeight) {
+					this.height=newHeight;
+				}
+			}
+
+			private function onUploadClick():void {
+				var fileType:Array;
+				if (mediaType.equals(EnumObjectType.IMAGE))
+					fileType=[imageFilter];
+				else if (mediaType.equals(EnumObjectType.AUDIO))
+					fileType=[audioFilter];
+				else if (mediaType.equals(EnumObjectType.VIDEO))
+					fileType=[videoFilter];
+				else
+					fileType=null;
+				repository.selectFiles(fileType, isAttachmentMode());
+			}
+
+			private function onCancelClick():void {
+				if (closeHandler != null)
+					closeHandler();
+				repository.startUploading();
+			}
+
+			private function onSelectClick():void {
+				if (selectHandler != null) {
+					if (vstContainers.selectedIndex == 0) {
+						selectHandler(lstList.selectedItem);
+						repository.startUploading(lstList.selectedItem);
+					} else if (vstContainers.selectedIndex == 1){
+						var assetObject:AssetObject = new AssetObject(urlPanel.selectedItem.url, urlPanel.selectedItem.name);
+						selectHandler(assetObject);
+					}
+				}
+			}
+
+			private function onListClick(e:MouseEvent):void {
+				if (e.target is SlideListButton) {
+					var ao:AssetObject=((e.target as SlideListButton).parentDocument as AssetItemRenderer).data as AssetObject;
+					var de:DynamicEvent=new DynamicEvent(UploadBean.REMOVE_FILE_FROM_QUEUE, true);
+					de.fileReferenceWrapper=ao.fileReferenceW;
+					dispatcher.dispatchEvent(de);
+				}
+			}
+
+			private function isAssetMode():Boolean {
+				return tabBar.selectedIndex == 1;
+			}
+
+			private function onTabBarChange():void {
+				if (isAttachmentMode() || isAssetMode()) {
+					repository.assets.filterFunction=filterEmpty;
+					repository.assets.refresh();
+					vstContainers.selectedIndex=0;
+					refresh();
+					btnUpload.enabled=isAttachmentMode();
+				} else {
+					vstContainers.selectedIndex=1;
+				}
+
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%"
+			  height="100%"
+			  gap="0">
+		<s:VGroup width="100%"
+				  height="100%"
+				  paddingTop="5"
+				  paddingLeft="5"
+				  paddingRight="5"
+				  paddingBottom="5"
+				  gap="-1">
+			<s:TabBar id="tabBar"
+					  dataProvider="{_tabs}"
+					  change="onTabBarChange()"/>
+			<mx:ViewStack id="vstContainers"
+						  width="100%"
+						  height="100%"
+						  borderStyle="solid"
+						  borderColor="#B4B4B4"
+						  borderVisible="true"
+						  paddingTop="5"
+						  paddingLeft="5"
+						  paddingRight="5"
+						  paddingBottom="5">
+				<s:NavigatorContent width="100%"
+									height="100%"
+									id="attachmentContent">
+					<s:Group width="100%"
+							 height="100%"
+							 clipAndEnableScrolling="true">
+						<mx:HDividedBox id="divider"
+										width="100%"
+										height="100%">
+							<s:VGroup width="100%"
+									  height="100%"
+									  minWidth="330"
+									  gap="0">
+								<s:HGroup paddingRight="5"
+										  paddingLeft="5"
+										  paddingBottom="10"
+										  gap="30">
+									<s:Button label="Upload"
+											  id="btnUpload"
+											  enabled="{uploadEnabled}"
+											  click="{onUploadClick()}"
+											  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"/>
+									<s:HGroup enabled="{mediaType == null || mediaType.equals(EnumObjectType.NONE)}"
+											  verticalAlign="middle"
+											  horizontalAlign="center"
+											  height="100%">
+										<s:Label text="Filter: "
+												 paddingTop="3"/>
+										<mx:Spacer width="5"/>
+										<s:RadioButton id="rbImage"
+													   label="Image"
+													   selected="{mediaType.equals(EnumObjectType.IMAGE)}"/>
+										<s:RadioButton id="rbAudio"
+													   label="Audio"
+													   selected="{mediaType.equals(EnumObjectType.AUDIO)}"/>
+										<s:RadioButton id="rbVideo"
+													   label="Video"
+													   selected="{mediaType.equals(EnumObjectType.VIDEO)}"/>
+									</s:HGroup>
+								</s:HGroup>
+								<s:Group width="100%"
+										 height="100%">
+									<s:HGroup id="spinnerContainer"
+											  width="100%"
+											  height="100%"
+											  verticalAlign="middle"
+											  horizontalAlign="center"
+											  visible="false"
+											  includeInLayout="false">
+										<!-- loader graphic -->
+										<mx:SWFLoader id="loaderGraphic"
+													  source="{ImageRepository.loaderSpinner}"
+													  width="100"
+													  height="100"/>
+									</s:HGroup>
+									<s:List id="lstList"
+											width="100%"
+											height="100%"
+											dataProvider="{repository.assets}"
+											doubleClickEnabled="true"
+											labelField="name"
+											click="onListClick(event)"
+											useVirtualLayout="true"
+											itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.AssetItemRenderer"
+											skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin">
+										<s:layout>
+											<s:TileLayout useVirtualLayout="true"/>
+										</s:layout>
+									</s:List>
+								</s:Group>
+							</s:VGroup>
+							<view:AssetPreview height="100%"
+											   width="300"
+											   maxWidth="{divider.width - 350}"
+											   selected="{lstList.selectedItem as AssetObject}"/>
+						</mx:HDividedBox>
+					</s:Group>
+				</s:NavigatorContent>
+				<s:NavigatorContent width="100%"
+									height="100%"
+									enabled="{!mediaType.equals(EnumObjectType.TEMPLATE)}">
+					<view:URLMediaPanel id="urlPanel"
+										width="100%"
+										mediaType="{mediaType}"
+										height="100%"/>
+				</s:NavigatorContent>
+			</mx:ViewStack>
+		</s:VGroup>
+		<s:Group width="100%">
+			<s:Rect radiusX="0"
+					radiusY="0"
+					height="100%"
+					width="100%">
+				<s:fill>
+					<s:LinearGradient rotation="90">
+						<s:entries>
+							<s:GradientEntry ratio="0"
+											 alpha="1"
+											 color="#F7F7F7"/>
+							<s:GradientEntry ratio="1"
+											 alpha="1"
+											 color="#E5E5E5"/>
+						</s:entries>
+					</s:LinearGradient>
+				</s:fill>
+			</s:Rect>
+			<mx:HRule width="100%"
+					  height="1"
+					  top="0"
+					  strokeColor="0xcccccc"
+					  shadowColor="0x00ffffff"/>
+			<s:HGroup width="100%"
+					  verticalAlign="middle"
+					  paddingBottom="5"
+					  paddingLeft="2"
+					  paddingRight="26"
+					  paddingTop="5">
+				<mx:Spacer width="100%"/>
+				<s:Button label="Insert"
+						  click="onSelectClick()"
+						  enabled="{(vstContainers.selectedIndex == 0 &amp;&amp; lstList.selectedItem != null) || (vstContainers.selectedIndex == 1 &amp;&amp; urlPanel.selectedItem)}"
+						  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"/>
+
+			</s:HGroup>
+			<mx:Image source="@Embed('assets/resizertransp.png')"
+					  width="14"
+					  height="14"
+					  right="5"
+					  bottom="5"
+					  id="resizeButton"
+					  mouseDown="resizeMouseDown()"
+					  mouseUp="resizeMouseUp()"/>
+		</s:Group>
+	</s:VGroup>
+</s:TitleWindow>

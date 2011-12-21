@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:stageObjects="uk.co.itrainconsulting.contentviewer.view.stageObjects.*"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 resize="onResize()"
+		 initialize="onInitialize()"
+		 clipAndEnableScrolling="true">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.DynamicEvent;
+			
+			import uk.co.itrainconsulting.common.events.ImageRepositoryEvent;
+			import uk.co.itrainconsulting.common.events.LocalImageLoaderEvent;
+			import uk.co.itrainconsulting.common.utils.ImageRepository;
+			import uk.co.itrainconsulting.common.utils.LocalImageLoader;
+			import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.events.FileUploadEvent;
+
+			private static const NO_SELECTION_MESSAGE:String="No File Selected";
+			private static const AUDIO_PREVIEW_NOT_AVAILABLE:String="Sound preview is not available until upload finish.";
+			private static const VIDEO_PREVIEW_NOT_AVAILABLE:String="Video preview is not available until upload finish.";
+
+			private static const _repository:ImageRepository = ImageRepository.getInstance();
+			private static const _localLoader:LocalImageLoader = LocalImageLoader.getInstance();
+			
+			[Bindable]
+			private var _selected:AssetObject;
+			
+			private function onInitialize():void {
+				imgPreview.addEventListener(ImageRepositoryEvent.IMAGE_UPDATED, onImageUpdated);
+				imgPreview.addEventListener(LocalImageLoaderEvent.IMAGE_LOADED, onImageUpdated);
+			}
+
+			[Bindable]
+			public function get selected():AssetObject
+			{
+				return _selected;
+			}
+
+			public function set selected(val:AssetObject):void
+			{
+
+				_selected=val;
+				previewContainer.visible=false;
+				if (_selected)
+				{
+					lblName.text="File: " + _selected.name;
+					if (_selected.fileReferenceW)
+					{
+						if (_selected.type.equals(EnumObjectType.AUDIO))
+							lblName.text=AUDIO_PREVIEW_NOT_AVAILABLE;
+						else if (_selected.type.equals(EnumObjectType.VIDEO))
+							lblName.text=VIDEO_PREVIEW_NOT_AVAILABLE;
+						else
+						{
+							previewContainer.visible=true;
+							imgPreview.visible = false;
+							if (_selected.fileReferenceW.dataAsByteArray) {
+								_localLoader.loadLocal(selected.fileReferenceW.dataAsByteArray, imgPreview);
+							} else
+								_selected.fileReferenceW.addEventListener(FileUploadEvent.LOADING_COMPLETE, onImageLoadComplete);
+						}
+					}
+					else
+					{
+						previewContainer.visible=true;
+						if (_selected.type.equals(EnumObjectType.IMAGE))
+						{
+							imgPreview.visible = true;
+							var bd:BitmapData = _repository.imageData(_selected.url, true, imgPreview);
+							if (bd) {
+								imgPreview.source = new Bitmap(bd, PixelSnapping.AUTO, true);
+							}
+						}
+						else if (_selected.type.equals(EnumObjectType.AUDIO))
+						{
+							audioPlayer.source=_selected.url;
+						}
+						else if (_selected.type.equals(EnumObjectType.VIDEO))
+						{
+							vidPlayer.source=_selected.url;
+						}
+					}
+				}
+				else
+				{
+					lblName.text=NO_SELECTION_MESSAGE;
+				}
+			}
+
+			private function onImageLoadComplete(e:FileUploadEvent):void
+			{
+				_localLoader.loadLocal((e.target as FileReferenceWrapper).dataAsByteArray, imgPreview);
+			}
+
+			public function stopPlayback():void
+			{
+				if (audioPlayer.visible)
+					audioPlayer.killSound();
+				else if (vidPlayer.visible)
+					vidPlayer.stop();
+			}
+			
+			private function onResize():void {
+				previewContainer.width = this.width - 10;
+				previewContainer.height = this.height - 10;
+			}
+			
+			private function onImageUpdated(e:Event):void {
+				imgPreview.visible = true;
+			}
+		]]>
+	</fx:Script>
+	<s:Rect left="0"
+			top="0"
+			bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="0x777777"/>
+		</s:stroke>
+	</s:Rect>
+	<s:VGroup top="0"
+			  bottom="0"
+			  left="0"
+			  right="0"
+			  paddingBottom="5"
+			  paddingLeft="5"
+			  paddingRight="5"
+			  paddingTop="5">
+		<s:Label text="Preview"
+				 fontWeight="bold"/>
+		<s:Label id="lblName"
+				 text="{NO_SELECTION_MESSAGE}"/>
+		<mx:Spacer height="10"/>
+		<s:Group id="previewContainer"
+				 width="100%"
+				 height="100%"
+				 visible="false">
+			<s:VGroup width="{previewContainer.width}"
+					  height="{previewContainer.height}"
+					  verticalAlign="middle"
+					  horizontalAlign="center">
+				<mx:Image id="imgPreview"
+						  maintainAspectRatio="true"
+						  maxWidth="{previewContainer.width}"
+						  maxHeight="{previewContainer.height}"
+						  horizontalAlign="center"
+						  verticalAlign="middle"
+						  visible="{imgPreview.includeInLayout}"
+						  includeInLayout="{_selected.type.equals(EnumObjectType.IMAGE)}"/>
+				<stageObjects:AudioPlayerView width="180"
+											  height="100%"
+											  minHeight="1"
+											  maxHeight="40"
+											  minWidth="1"
+											  visible="{audioPlayer.includeInLayout}"
+											  includeInLayout="{_selected.type.equals(EnumObjectType.AUDIO)}"
+											  id="audioPlayer"/>
+			</s:VGroup>
+			<s:VideoPlayer width="{previewContainer.width}"
+						   height="{previewContainer.height - 50}"
+						   minHeight="1"
+						   minWidth="300"
+						   visible="{vidPlayer.includeInLayout}"
+						   includeInLayout="{_selected.type.equals(EnumObjectType.VIDEO)}"
+						   id="vidPlayer"/>
+
+		</s:Group>
+	</s:VGroup>
+</s:Group>

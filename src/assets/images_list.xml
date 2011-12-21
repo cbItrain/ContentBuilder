@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<assets>
+<asset name="elf" url="http://localhost/images/elf.jpg" filename="elf.jpg"/>
+<asset name="salon3" url="http://localhost/images/salon3.jpg" filename="salon3.jpg"/>
+<asset name="salon2" url="http://localhost/images/salon2.jpg" filename="salon2.jpg"/>
+</assets>

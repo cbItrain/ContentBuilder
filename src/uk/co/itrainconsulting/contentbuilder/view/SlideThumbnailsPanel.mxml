@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:mx="library://ns.adobe.com/flex/mx"
+			 width="100%" height="100%"
+			 doubleClickEnabled="true"
+			 initialize="onInitilize()">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.controls.TextArea;
+			import mx.controls.sliderClasses.SliderThumb;
+			import mx.core.DragSource;
+			import mx.core.IUIComponent;
+			import mx.core.IVisualElement;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.events.MoveEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.events.ScrollEvent;
+			import mx.events.StateChangeEvent;
+			import mx.managers.DragManager;
+			
+			import spark.components.supportClasses.ItemRenderer;
+			import spark.events.IndexChangeEvent;
+			import spark.events.RendererExistenceEvent;
+			import spark.layouts.supportClasses.DropLocation;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.RenderEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.ShowReferenceEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SlideThumbnailsPanelEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.contentbuilder.view.baseComponents.ReferenceArrow;
+			import uk.co.itrainconsulting.contentbuilder.view.baseComponents.SlideReferenceFormatter;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideThumbnailItemRenderer;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableButton;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
+			
+			[Inject] [Bindable] public var contentModel:ContentModel;
+			
+			private var slideThumbnails:Array = [];
+			private var dragArrow:ReferenceArrow;
+			private var dragInitiatorArrow:ReferenceArrow;
+			
+			private function slideSelected():void {
+				var se:SlideEvent = new SlideEvent(ContentController.SLIDE_SELECTED, lstSlides.selectedItem as Slide,true);
+				dispatchEvent(se);
+			}
+			
+			private function onInitilize():void {
+				this.addEventListener(RenderEvent.RENDER_COMPLETE, onRenderComplete);
+				this.addEventListener(RenderEvent.RENDER_REMOVED, onRenderRemoved);		
+				
+				this.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			}
+		
+			private function onMouseUp(ev:MouseEvent):void {
+				if (dragInitiatorArrow) {
+					var st:SlideThumbnail = ev.target as SlideThumbnail;
+					if (st && slideThumbnails.indexOf(st) == dragInitiatorArrow.slideOriginIndex)
+						return;
+					onArrowDragComplete();
+				}
+			}
+			
+			private function onArrowMouseDown(ev:MouseEvent):void {
+				dragInitiatorArrow = ev.currentTarget as ReferenceArrow;
+				dragInitiatorArrow.addEventListener(DragEvent.DRAG_COMPLETE, onArrowDragComplete);
+				DragManager.doDrag(dragInitiatorArrow, new DragSource(),ev , new Image());
+				dragArrow = new ReferenceArrow(dragInitiatorArrow.sourceMedia, dragInitiatorArrow.slideOriginIndex);
+				dragArrow.startPoint = dragInitiatorArrow.startPoint;
+				
+				canvas.removeElement(dragInitiatorArrow);
+				canvas.addElement(dragArrow);	
+				
+				this.addEventListener(MouseEvent.MOUSE_MOVE, onDragOver, true);
+				
+			}
+			
+			private function deleteCurrentArrow(mo:MediaObject):void {
+				var a : ReferenceArrow;
+				for (var i:int = 0; i < canvas.numElements; i++) {
+					a = canvas.getElementAt(i) as ReferenceArrow;
+					if (a.sourceMedia == mo) {
+						canvas.removeElementAt(i);
+						return;
+					}
+				}
+			}
+			
+			private function onRenderComplete(ev:RenderEvent):void {
+				var renderer : SlideThumbnailItemRenderer = ev.target as SlideThumbnailItemRenderer;
+				addEventListenersToST(renderer.slideThumbnail);
+				renderer.slideThumbnail.doubleClickEnabled = true;
+				if (renderer.itemIndex >= slideThumbnails.length) {
+					slideThumbnails.push(renderer.slideThumbnail);
+				} else {
+					if ((slideThumbnails[renderer.itemIndex] as SlideThumbnail).slide == renderer.slideThumbnail.slide)
+						slideThumbnails.splice(renderer.itemIndex, 1, renderer.slideThumbnail);
+					else
+						slideThumbnails.splice(renderer.itemIndex, 0, renderer.slideThumbnail);
+				}
+			}
+			
+			private function addEventListenersToST(st:SlideThumbnail):void {
+				st.addEventListener(DragEvent.DRAG_ENTER, onSlideDragEnter);
+				st.addEventListener(DragEvent.DRAG_DROP, onSlideDragDrop);
+				st.addEventListener(MouseEvent.DOUBLE_CLICK, onSlideDoubleClick);
+			}
+			
+			private function removeEventListenersFromST(st:SlideThumbnail):void {
+				st.removeEventListener(DragEvent.DRAG_ENTER, onSlideDragEnter);
+				st.removeEventListener(DragEvent.DRAG_DROP, onSlideDragDrop);
+				st.removeEventListener(MouseEvent.DOUBLE_CLICK, onSlideDoubleClick);
+			}
+			
+			private function onSlideDoubleClick(ev:MouseEvent):void {
+				lstSlides.selectedItem = (ev.currentTarget as SlideThumbnail).slide;
+				slideSelected();
+				dispatchEvent(new SlideThumbnailsPanelEvent(SlideThumbnailsPanelEvent.SHOW_EDITOR, true));
+			}
+			
+			private function onRenderRemoved(ev:RenderEvent):void {
+				var renderer : SlideThumbnailItemRenderer = ev.target as SlideThumbnailItemRenderer;
+				removeEventListenersFromST(renderer.slideThumbnail);
+				var index:int = slideThumbnails.indexOf(renderer.slideThumbnail);
+				slideThumbnails.splice(index, 1);
+			}
+			
+			private function onDragOver(ev:MouseEvent):void {
+				if (DragManager.isDragging) {
+					var target:DisplayObject = ev.target as DisplayObject;
+					var xModifier:int = 5;
+					var yModifier:int = 5;
+					if (ev.localX > dragArrow.startPoint.x)
+						xModifier = - xModifier;
+					if (ev.localY > dragArrow.startPoint.y)
+						yModifier = - yModifier
+					dragArrow.drawArrow(canvas.globalToLocal(target.localToGlobal(new Point(ev.localX + xModifier, ev.localY + yModifier))));
+				}
+			}			
+
+			private function onSlideDragDrop(ev:DragEvent):void {
+				var st:SlideThumbnail = ev.target as SlideThumbnail;
+				if ((ev.dragInitiator as ReferenceArrow).slideOriginIndex == slideThumbnails.indexOf(st)) {
+					ev.dragInitiator.removeEventListener(DragEvent.DRAG_COMPLETE, onArrowDragComplete);
+					Alert.show("Do you want to remove reference to the " + SlideReferenceFormatter.slideReferenceToString(dragArrow.sourceMedia.slideToGo) + " slide?", 
+							   "Delete reference", Alert.YES | Alert.NO, this, function (ce:CloseEvent):void { 
+								   if (ce.detail == Alert.YES) {
+									   dragArrow.sourceMedia.slideToGo = -1;
+									   canvas.removeElement(dragArrow);
+								   }
+								   onArrowDragComplete(ev);
+							   });
+				} else {
+					canvas.removeElement(dragArrow);
+					dragArrow.sourceMedia.slideToGo = contentModel.slides.getSlideIndex(st.slide);
+					var arrow:ReferenceArrow = new ReferenceArrow(dragArrow.sourceMedia, dragArrow.slideOriginIndex);
+					var endPoint:Point = getEndPoint(dragArrow.startPoint, st);
+					arrow.drawArrow(endPoint, dragArrow.startPoint);
+					arrow.addEventListener(MouseEvent.MOUSE_DOWN, onArrowMouseDown);
+					canvas.addElement(arrow);
+				}
+				
+			}
+			
+			private function onArrowDragComplete(ev:DragEvent = null):void {
+				if (canvas.contains(dragArrow)) {
+					canvas.removeElement(dragArrow);
+					canvas.addElement(dragInitiatorArrow);
+					dragInitiatorArrow.removeEventListener(DragEvent.DRAG_COMPLETE, onArrowDragComplete);
+					dragInitiatorArrow = null;
+				}
+				this.removeEventListener(MouseEvent.MOUSE_MOVE, onDragOver, true);
+			}
+			
+			private function onSlideDragEnter(ev:DragEvent):void {
+				if (!(ev.dragInitiator is List))
+					DragManager.acceptDragDrop(ev.target as UIComponent);
+			}
+			
+			[Mediate(event='showSlideThumbnails')]
+			public function drawArrows(o:Object = null):void {
+				if (slideThumbnails.length == contentModel.slides.slidesCount && canvas.visible) {
+					canvas.removeAllElements();
+					var maxPoint : Point = lstSlides.localToGlobal(new Point(lstSlides.width, lstSlides.height));
+					var mediaObjects:ArrayCollection;
+					var views:Dictionary;
+					var start:Point;
+					var end:Point;
+					var index:int;
+					var arrow:ReferenceArrow;
+					var view:DisplayObject;
+					for each (var st:SlideThumbnail in slideThumbnails) {
+						mediaObjects = st.slide.stageObjects;
+						views = st.viewsLookup;
+						for each (var mo:MediaObject in mediaObjects) {
+							if (mo.slideToGo != -1){
+								arrow = new ReferenceArrow(mo, slideThumbnails.indexOf(st) ,mo.slideToGo < -1);
+								view = views[mo] as DisplayObject;
+								start = view.localToGlobal(new Point(view.width/2,view.height/2));
+								start = canvas.globalToLocal(start);
+								if (mo.slideToGo >= 0) {
+									view = getSlideThumbForSlideIndex(mo.slideToGo);
+								} else {
+									switch (mo.slideToGo) {
+										case -10: view = getSlideThumbForSlideIndex(0); break;
+										case -20: view = getSlideThumbForSlideIndex(slideThumbnails.length-1); break;
+										case -11: index = contentModel.slides.getSlideIndex(st.slide);
+											if (index > 0)
+												view = getSlideThumbForSlideIndex(index - 1); break;
+											break;
+										case -12: index = contentModel.slides.getSlideIndex(st.slide);
+											if (index < slideThumbnails.length - 1)
+												view = getSlideThumbForSlideIndex(index + 1); break;
+											break;
+									}
+								}
+								if ((view is SlideThumbnail) && SlideThumbnail(view).slide != st.slide) {
+									end = getEndPoint(start,view);									
+									arrow.addEventListener(MouseEvent.MOUSE_DOWN, onArrowMouseDown);
+									canvas.addElement(arrow);
+									arrow.drawArrow(end, start);
+								}
+							}
+						}
+					
+					}
+				}
+			}
+			
+			private function getSlideThumbForSlideIndex(index:int):SlideThumbnail {
+				for each (var st:SlideThumbnail in slideThumbnails) {
+					if (index == contentModel.slides.getSlideIndex(st.slide))
+						return st;
+				}
+				return null;
+			}
+			
+			private function getEndPoint(startPoint:Point, target:DisplayObject):Point {
+				var distance:Number;
+				var currentDistance:Number;
+				var point:Point;
+				var corner:Point;
+				var i:int = 0;
+				
+				while (i<4){
+					switch (i) {
+						case 0: corner = target.localToGlobal(new Point(20,20));
+								point = corner;
+								distance = Point.distance(startPoint, corner);
+								break;
+						case 1: corner = target.localToGlobal(new Point(target.width - 20, 20)); break;
+						case 2: corner = target.localToGlobal(new Point(target.width - 20,target.height - 20)); break;
+						case 3: corner = target.localToGlobal(new Point(20, target.height - 20)); break;
+					}
+					currentDistance = Point.distance(startPoint, corner);
+					if (currentDistance < distance) {
+						distance = currentDistance;
+						point = corner;
+					}
+					i++;
+				}
+				return canvas.globalToLocal(point);	
+			}
+			
+			[Mediate(event="showConnectorsMainMenuEvent")]
+			public function showConnectors():void {
+				canvas.visible = true;
+				drawArrows();
+			}
+			
+			[Mediate(event="hideConnectorsMainMenuEvent")]
+			public function hideConnectors():void {
+				canvas.visible = false;
+			}
+			
+			private function onListDragDrop(e:DragEvent):void {
+				if (e.ctrlKey){
+					e.stopImmediatePropagation();
+					var slide:Slide = e.dragSource.dataForFormat("itemsByIndex")[0] as Slide;
+					var newSlide:Slide = contentModel.slides.addSlideAt(slide.generateXML(contentModel.contentProps), lstSlides.layout.calculateDropLocation(e).dropIndex );		
+					var se:SlideEvent = new SlideEvent(ContentController.SLIDE_ADDED, newSlide, true);
+					
+					lstSlides.layout.hideDropIndicator();
+					lstSlides.destroyDropIndicator();
+					
+					lstSlides.drawFocus(false);
+					
+					dispatchEvent(se);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>		
+	<s:Scroller width="100%" height="100%">
+		<s:Group id="grSlideThumbs" width="100%" height="100%">
+			<s:layout>
+				<s:BasicLayout />
+			</s:layout>
+			<s:List   		id="lstSlides"
+							width="100%"
+							maxWidth="{grSlideThumbs.width - 18}"
+							selectedItem="{contentModel.selectedSlide}"
+							change="slideSelected()"
+							updateComplete="{drawArrows()}"
+							dragDrop="onListDragDrop(event)"
+							dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"
+							contentBackgroundAlpha="0" borderVisible="false" focusEnabled="false" focusAlpha="0"
+							skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.MySkin"
+							itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideThumbnailItemRenderer"
+							dataProvider="{contentModel.slides.getAll()}">
+				<s:layout>
+					<s:TileLayout useVirtualLayout="false"/>
+				</s:layout>
+			</s:List>			
+		<s:Group id="canvas" 
+				 width="{lstSlides.width}" 
+				 height="{lstSlides.height}" />
+		</s:Group>
+	</s:Scroller>
+</s:VGroup>

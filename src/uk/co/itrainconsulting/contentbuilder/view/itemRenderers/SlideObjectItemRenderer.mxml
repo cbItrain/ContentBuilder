@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2009/09/29/displaying-images-in-a-spark-list-control-using-a-custom-item-renderer-in-flex-4/ -->
+<s:ItemRenderer name="CustomItemRenderer"
+				xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" toolTip="{data.name}" 
+				xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+				width="100%" height="100%" xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+				>
+	
+	<fx:Script>
+		<![CDATA[			
+			import flashx.textLayout.conversion.TextConverter;
+			
+			import mx.binding.utils.BindingUtils;
+			
+			import spark.components.List;
+			
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
+			
+			
+			[Embed('assets/icons/edit.png')] private var textTypeIcon:Class;
+			[Embed('assets/icons/picture.png')] private var imageTypeIcon:Class;
+			[Embed('assets/icons/television.png')] private var videoTypeIcon:Class;
+			[Embed('assets/icons/music.png')] private var audioTypeIcon:Class;
+			[Embed('assets/icons/layer-select.png')] private var shapeTypeIcon:Class;
+			[Embed('assets/icons/buttonIcon.png')] private var buttonTypeIcon:Class;
+			
+			
+			public static var slideWidth:int = 200;
+			public static var slideHeight:int = 200;
+			
+			[Bindable]
+			private var _slide:Slide = new Slide();
+			
+			
+			public override function set data(o:Object):void {
+				super.data = o;
+				var mediaObject:MediaObject = o as MediaObject;
+				if (mediaObject) {
+					switch (mediaObject.mediaType.ordinal) {
+						case EnumObjectType.IMAGE.ordinal:
+							imgType.source = imageTypeIcon;
+							BindingUtils.bindProperty(lblDesc, 'text', mediaObject, 'url');
+							break;
+						case EnumObjectType.TEXT.ordinal:
+							imgType.source = textTypeIcon;
+							BindingUtils.bindSetter(setHtmlText, mediaObject, 'htmlText');
+							break;
+						case EnumObjectType.AUDIO.ordinal:
+							imgType.source = audioTypeIcon;
+							BindingUtils.bindProperty(lblDesc, 'text', mediaObject, 'url');
+							break;
+						case EnumObjectType.VIDEO.ordinal:
+							imgType.source = videoTypeIcon;
+							BindingUtils.bindProperty(lblDesc, 'text', mediaObject, 'url');
+							break;
+						case EnumObjectType.BUTTON.ordinal:
+							imgType.source = buttonTypeIcon;
+							BindingUtils.bindProperty(lblDesc, 'text', mediaObject, 'label');
+							break;
+						case EnumObjectType.SHAPE.ordinal:
+							imgType.source = shapeTypeIcon;
+							lblDesc.text = 'Shape';
+							break;
+					}
+					
+					var tempSlide:Slide = new Slide();
+					tempSlide.unlistenForChange();
+					tempSlide.bgCol1 = 0xffffff;
+					tempSlide.bgCol2 = 0xffffff;
+					tempSlide.width = slideWidth;
+					tempSlide.height = slideHeight;
+					tempSlide.addNewMedia(mediaObject);
+					slideThumb.slide = tempSlide;
+				}
+			}
+			
+			private function setHtmlText(newValue:String):void {
+				lblDesc.text = TextConverter.importToFlow(newValue ,TextConverter.TEXT_FIELD_HTML_FORMAT).getText();
+			}
+			
+			[Bindable]
+			public override function get data():Object {
+				return super.data;
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup left="5" right="5" top="5" bottom="5" width="100%" height="100%" verticalAlign="middle" >
+		<mx:Image id="imgType" />
+		<view:SlideThumbnail id="slideThumb" maxH="50" maxW="50" textBackgroudColor="0x00ff00"/>
+		<s:Label  id="lblSeqNo" text="1" />
+		<mx:Label id="lblDesc" truncateToFit="true" maxWidth="170" />
+	</s:HGroup>
+</s:ItemRenderer>

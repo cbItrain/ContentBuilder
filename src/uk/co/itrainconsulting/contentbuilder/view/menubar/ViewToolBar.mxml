@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:flexlib="com.flexlib.*"
+					  xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+					  toolTip="View Toolbar">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.DynamicEvent;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.MainMenuEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			
+			[Inject] [Bindable]public var contentModel:ContentModel;
+			
+			[Embed(source="assets/icons/dragStripIcon.png")]
+			[Bindable] private var dragStripIconClass:Class;
+			
+			private function exportCanvas():void{
+				var ee:Event = new Event(ContentController.EXPORT_CANVAS, true);
+				dispatchEvent(ee);
+			}
+			
+			protected function onPreviewPopUpMenuClick(ev:Event):void {
+				if (popUpBtnPreview.menu.selectedIndex == 0) {
+					launchPreviewSelectedOnly();
+				} else if (popUpBtnPreview.menu.selectedIndex == 1) {
+					launchPreview();
+				}
+			}
+			
+			private function launchPreviewSelectedOnly():void {
+				var de:DynamicEvent = new DynamicEvent(ContentController.GENERATE_XML, true);
+				de.selectedSlideOnly = true;
+				dispatchEvent(de);
+				dispatchEvent(new Event(ContentController.LOAD_PREVIEWER, true));
+			}
+			
+			private function launchPreview():void{
+				var de:DynamicEvent = new DynamicEvent(ContentController.GENERATE_XML, true);
+				de.selectedSlideOnly = false;
+				dispatchEvent(de);
+				dispatchEvent(new Event(ContentController.LOAD_PREVIEWER, true));
+			}
+			
+			private function onMainPanelChange():void {
+				switch (bbMainPanel.selectedIndex) {
+					case 0: dispatchEvent(new Event(ContentController.SHOW_SLIDE_EDITOR, true)); break;
+					case 1: 
+						dispatchEvent(new Event(ContentController.SHOW_SLIDE_THUMBNAILS, true)); 
+						break;
+				}
+				dispatchEvent(new Event(ContentController.CLEAR_SELECTION,true));
+			}
+			
+			private function onShowArrowsChange():void {
+				var e:MainMenuEvent;
+				if (tbtnArrows.selected) 
+					e = new MainMenuEvent(MainMenuEvent.SHOW_CONNECTORS, true);
+				else
+					e = new MainMenuEvent(MainMenuEvent.HIDE_CONNECTORS, true);
+				dispatchEvent(e);
+			}
+			
+			[Mediate(event="SlideThumbnailsPanelEvent.SHOW_EDITOR")]
+			public function showEditor():void {
+				bbMainPanel.selectedIndex = 0;
+				onMainPanelChange();
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:Image source="{dragStripIconClass}" />
+	
+	<baseComponents:IconPopUpButton id="popUpBtnPreview" 
+									click="launchPreviewSelectedOnly()"
+									skin="uk.co.itrainconsulting.contentbuilder.view.skins.IconPopUpButtonSkin"
+									enabled="{contentModel.selectedSlide != null}"
+									menuItems="{['Preview current slide','Preview all presentation']}" 
+									icon="@Embed('assets/icons/control.png')"  
+									toolTip="Preview" 
+									onMenuClickHandler="{onPreviewPopUpMenuClick}" />
+	<baseComponents:IconButton 	click="exportCanvas()" 
+								enabled="{contentModel.selectedSlide != null}" 
+								icon="@Embed('assets/icons/picture.png')" 
+								label="Export" 
+								toolTip="Export Slide" />
+	
+	<mx:Spacer width="2" />
+	<baseComponents:VerticalSplitter height="100%" />
+	<mx:Spacer width="2" />
+	
+	<s:ButtonBar id="bbMainPanel" 
+				 height="25" 
+				 width="80"
+				 skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.IconButtonBarSkin"
+				 selectedIndex="0"
+				 change="onMainPanelChange()">
+		<s:dataProvider>
+			<s:ArrayList>
+				<fx:Object label="Slide Editor Panel"
+						   icon="@Embed('assets/icons/editorPanelIcon.png')" />
+				<fx:Object label="Slide Thumbnails Panel"
+						   icon="@Embed('assets/icons/slidesThumbPanelIcon.png')" />
+			</s:ArrayList>
+		</s:dataProvider>
+	</s:ButtonBar>
+	
+	<s:ButtonBarButton 	id="tbtnArrows" 
+						toolTip="{(tbtnArrows.selected)? 'Hide connectors' : 'Show Connectors'}" 
+						height="25" width="35"
+						data="@Embed('assets/icons/arrow-switch.png')"
+						selected="true"
+						skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.IconToggleButtonSkin"
+						visible="{contentModel.selectedSlide != null &amp;&amp; bbMainPanel.selectedIndex}"
+						change="onShowArrowsChange()"/>
+</s:HGroup >

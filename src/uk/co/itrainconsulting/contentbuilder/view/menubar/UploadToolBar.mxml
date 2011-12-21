@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:flexlib="com.flexlib.*"
+					  xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+					  toolTip="Upload Toolbar"
+					  verticalAlign="middle">
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[			
+			[Embed(source="assets/icons/dragStripIcon.png")]
+			[Bindable] private var dragStripIconClass:Class;
+		]]>
+	</fx:Script>
+	
+	<mx:Image source="{dragStripIconClass}" />
+	
+	<bc:UploadViewer/>
+	
+</s:HGroup>

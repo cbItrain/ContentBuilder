@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" 
+		 xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*" 
+		 xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*" >
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.events.DragEvent;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.DeleteItemEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableText;
+			
+			
+			[Bindable] public var padding:Number = 10;
+			[Inject] [Bindable] public var contentModel:ContentModel;
+			
+			private function onAdvTextChange():void {
+				var txtModel : TextMedia = contentModel.selectedResizableObject.model as TextMedia;
+				txtModel.advTextMode = chbAdvText.selected;
+				if (chbAdvText.selected){
+					
+					txtModel.slideToGo = -1;
+					txtModel.urlToGo = "";
+					
+					lstTextLayers.addEventListener(DeleteItemEvent.DELETE_LIST_ITEM, onDeleteItemClick);
+					txtModel.textChain = new ArrayCollection();
+					txtModel.textChain.addItem(txtModel.htmlText);
+					txtModel.currentLayerInd = 0;
+				} else {
+					lstTextLayers.removeEventListener(DeleteItemEvent.DELETE_LIST_ITEM, onDeleteItemClick);
+					(contentModel.selectedResizableObject.model as TextMedia).timeInterval = 0;
+				}
+			}
+			
+			private function onDeleteItemClick(ev:DeleteItemEvent):void {
+				var m:TextMedia = contentModel.selectedResizableObject.model as TextMedia;
+				m.textChain.removeItemAt(ev.itemIndex);
+				if(m.currentLayerInd == 0)
+					m.htmlText = m.textChain.getItemAt(0) as String;
+				lstTextLayers.selectedIndex = m.currentLayerInd = 0;
+			}
+			
+			private function onAddNewLayerClick():void {
+				var textChain:ArrayCollection = (contentModel.selectedResizableObject.model as TextMedia).textChain;
+				textChain.addItem("New Text Layer");
+				(contentModel.selectedResizableObject.model as TextMedia).currentLayerInd = textChain.length - 1;
+			}
+			
+			private function onTimeIntervalChange():void{
+				(contentModel.selectedResizableObject.model as TextMedia).timeInterval = stpTimeInterval.value;
+			}
+			
+			private function onDragComplete(ev:DragEvent):void {				
+				(contentModel.selectedResizableObject.model as TextMedia).currentLayerInd = lstTextLayers.selectedIndex;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<fx:Array id="fontFamilyArr">
+			<fx:String>Arial, Helvetica</fx:String>
+			<fx:String>Verdana, Geneva</fx:String>
+			<fx:String>Tahoma, Geneva</fx:String>
+			<fx:String>Trebuchet MS, Arial, Helvetica</fx:String>
+			<fx:String>Times New Roman, Times</fx:String>
+		</fx:Array>
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%" gap="0">
+		<pp:PropertiesTitle title="Text Properties" icon="@Embed('assets/icons/edit.png')" />
+		<s:SkinnableContainer skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin" 
+							  width="100%" height="100%" >
+			
+			<s:VGroup width="100%" gap="10" paddingBottom="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}">
+				<pp:LayoutProperties model="{contentModel.selectedResizableObject.model as TextMedia}" width="100%" />
+				
+				<mx:Spacer height="5"/>
+				
+				<pp:NavigationProperties width="100%" model="{contentModel.selectedResizableObject.model}" enabled="{!chbAdvText.selected}"/>
+					
+				<mx:Spacer height="5"/>
+					
+				<s:Label text="Advanced Text Settings" fontWeight="bold" />
+				
+				<s:CheckBox id="chbAdvText" label="Use Advanced Text" selected="{(contentModel.selectedResizableObject.model as TextMedia).advTextMode}" change="onAdvTextChange()"/>
+				
+				<s:VGroup width="100%" gap="5" visible="{chbAdvText.selected}" includeInLayout="{chbAdvText.selected}">
+					<s:Button id="btnAddNewTextLayer" label="Add New Layer" click="onAddNewLayerClick()"/>
+					<s:List id="lstTextLayers" width="100%" height="150"
+							dataProvider="{(contentModel.selectedResizableObject.model as TextMedia).textChain}"
+							dragEnabled="true" dropEnabled="true" dragMoveEnabled="true"
+							selectedIndex="{(contentModel.selectedResizableObject.model as TextMedia).currentLayerInd}"
+							dragComplete="onDragComplete(event)"
+							change="((contentModel.selectedResizableObject.model as TextMedia).currentLayerInd = lstTextLayers.selectedIndex)"
+							itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.TextLayerItemRenderer"/>
+					<s:CheckBox id="chbAutoTrans"
+						label="Automatic transition" 
+								selected="{(contentModel.selectedResizableObject.model as TextMedia).timeInterval > 0}" 
+								change="{(chbAutoTrans.selected) ? (contentModel.selectedResizableObject.model as TextMedia).timeInterval = 5 : (contentModel.selectedResizableObject.model as TextMedia).timeInterval = 0}"/>
+					<view:LabeledNumStepper textAlign="right" labelWidth="150" visible="{chbAutoTrans.selected}" includeInLayout="{chbAutoTrans.selected}"
+											id="stpTimeInterval" label="Text Display Time (seconds)" 
+											value="{(contentModel.selectedResizableObject.model as TextMedia).timeInterval}" min="1" 
+											width="100%" change="onTimeIntervalChange()" />
+				</s:VGroup>
+
+				
+			</s:VGroup>
+		</s:SkinnableContainer>
+	</s:VGroup>
+</s:Group>

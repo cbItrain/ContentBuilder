@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*" 
+		 xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.PropertyChangeEvent;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			
+			[Bindable] public var model:MediaObject;	
+			[Bindable] public var enableRotation:Boolean = true;
+			[Bindable] public var controlMinWdith:Number = 80;
+			
+			private function setXPosition():void {
+				model.x = xInput.value;
+			}
+			
+			private function setYPosition():void {
+				model.y = yInput.value;
+			}
+			
+			private function setWidth():void {
+				model.width = widthInput.value;
+			}
+			
+			private function setHeight():void {
+				model.height = heightInput.value;
+			}
+			
+			private function setRotation():void {
+				model.rotation = rotationInput.value;
+			}
+			
+			private function sendBack():void{
+				var moveEvent:Event = new Event(ContentController.MEDIA_BACKWARDS,true);
+				dispatchEvent(moveEvent);
+			}
+			private function sendForwards():void{
+				var moveEvent:Event = new Event(ContentController.MEDIA_FORWARDS,true);
+				dispatchEvent(moveEvent);
+			}
+			private function sendToBack():void{
+				var moveEvent:Event = new Event(ContentController.MEDIA_TO_BACK,true);
+				dispatchEvent(moveEvent);
+			}
+			private function sendToFront():void{
+				var moveEvent:Event = new Event(ContentController.MEDIA_TO_FRONT,true);
+				dispatchEvent(moveEvent);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Label text="Re-order" fontWeight="bold" />
+	<s:HGroup width="100%">
+		<bc:IconButton icon="@Embed('assets/icons/layers-arrange.png')"
+								   click="sendForwards()" showLabel="false" label="Copy" toolTip="Send Forwards" />
+		<bc:IconButton icon="@Embed('assets/icons/layers-arrange-back.png')" 
+								   click="sendBack()" showLabel="false" label="Copy" toolTip="Send Backwards" />
+		<bc:IconButton icon="@Embed('assets/icons/layers-stack-arrange.png')" 
+								   click="sendToFront()" showLabel="false" label="Copy" toolTip="Send To Front" />
+		<bc:IconButton icon="@Embed('assets/icons/layers-stack-arrange-back.png')" 
+								   click="sendToBack()" showLabel="false" label="Copy" toolTip="Send To Back" />
+	</s:HGroup>
+	
+	<s:Label text="Dimensions/Position" fontWeight="bold" />
+	
+	<s:Group width="100%">
+		<s:layout>
+			<s:TileLayout />
+		</s:layout>
+		<view:LabeledNumStepper textAlign="right" minWidth="{controlMinWdith}" labelWidth="60" id="widthInput" label="Width" value="{model.width}" min="-1000" width="100%" change="setWidth()" />
+		<view:LabeledNumStepper textAlign="right" minWidth="{controlMinWdith}" labelWidth="60" id="heightInput" label="Height" value="{model.height}" min="-1000" width="100%" change="setHeight()" />
+		<view:LabeledNumStepper textAlign="right" minWidth="{controlMinWdith}" labelWidth="60" id="xInput" label="x" value="{model.x}" width="100%" min="-1000" change="setXPosition()" />
+		<view:LabeledNumStepper textAlign="right" minWidth="{controlMinWdith}" labelWidth="60" id="yInput" label="y" value="{model.y}" width="100%" min="-1000" change="setYPosition()" />
+	</s:Group>
+	
+	<view:LabeledNumStepper id="rotationInput" 
+							width="{yInput.width}" 
+							visible="{enableRotation}"
+							includeInLayout="{enableRotation}"
+							textAlign="right" 
+							labelWidth="60" 
+							label="Rotation" 
+							value="{model.rotation}"
+							min="-1200" max="1200" 
+							change="setRotation()" />
+	
+</s:VGroup>

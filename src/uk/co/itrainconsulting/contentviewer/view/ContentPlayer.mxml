@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                      xmlns:s="library://ns.adobe.com/flex/spark"
+                      xmlns:view="uk.co.itrainconsulting.contentviewer.view.*"
+                      xmlns:mx="library://ns.adobe.com/flex/mx"
+                      width="100%"
+                      height="100%">
+    <fx:Script>
+        <![CDATA[
+            import flashx.textLayout.events.ModelChange;
+
+            import mx.binding.utils.ChangeWatcher;
+
+            import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.TwoWayScrollableGroupSkin;
+            import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+
+            [Bindable]
+            [Inject]
+            public var contentViewModel:ContentViewModel;
+
+            [PostConstruct]
+            public function onPostConstruct():void {
+                ChangeWatcher.watch(contentViewModel, "allowScaling", onAllowScalingChange);
+            }
+
+            private function onAllowScalingChange(o:Object=null):void {
+                onResize();
+            }
+
+            public function stopPlayback():void {
+                actualCanvas.stopPlayingMedia();
+            }
+
+            private function onResize():void {
+                if (contentViewModel.allowScaling) {
+                    var scale:Number=Math.min(container.width / actualCanvas.width, container.height / actualCanvas.height);
+                    actualCanvas.scaleX=actualCanvas.scaleY=scale;
+                } else {
+                    actualCanvas.scaleX=actualCanvas.scaleY=1.0;
+                }
+            }
+        ]]>
+    </fx:Script>
+    <!--s:Rect x="0"
+            y="0"
+            height="100%"
+            width="100%">
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry color="0xffffff"
+                                     alpha="1"/>
+                    <s:GradientEntry color="0xffffff"
+                                     alpha="1"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect-->
+    <s:Rect x="0"
+            y="0"
+            height="100%"
+            width="100%">
+        <s:fill>
+            <s:LinearGradient rotation="90">
+                <s:entries>
+                    <s:GradientEntry color="{contentViewModel.contentProps.bgColor}"
+                                     alpha="0.6"/>
+                    <s:GradientEntry color="{contentViewModel.contentProps.bgColor}"
+                                     alpha="1"/>
+                </s:entries>
+            </s:LinearGradient>
+        </s:fill>
+    </s:Rect>
+    <s:HGroup width="100%"
+              height="100%"
+              gap="0"
+              verticalAlign="middle">
+        <view:LeftNavigation id="leftNav"
+                             height="100%"
+                             width="250"
+                             visible="{leftNav.includeInLayout}"
+                             includeInLayout="{contentViewModel.showSlideList &amp;&amp; !contentViewModel.singleSlideMode}"/>
+        <s:Group width="100%"
+                 height="100%"
+                 id="container"
+                 resize="onResize()">
+            <s:Scroller top="{contentViewModel.topGap}"
+                        bottom="{contentViewModel.bottomGap}"
+                        left="{contentViewModel.leftGap}"
+                        right="{contentViewModel.rightGap}"
+                        horizontalScrollPolicy="{contentViewModel.allowScaling ? 'off' : 'auto'}"
+                        verticalScrollPolicy="{contentViewModel.allowScaling ? 'off' : 'auto'}">
+                <s:Group width="100%"
+                         height="100%"
+                         clipAndEnableScrolling="true">
+                    <view:CanvasPlayer id="actualCanvas"
+                                       slide="{contentViewModel.selectedCanvas}"
+                                       resize="onResize()"
+                                       verticalCenter="0"
+                                       horizontalCenter="0"
+                                       width="100"
+                                       height="100"/>
+                </s:Group>
+            </s:Scroller>
+        </s:Group>
+    </s:HGroup>
+</s:SkinnableContainer>

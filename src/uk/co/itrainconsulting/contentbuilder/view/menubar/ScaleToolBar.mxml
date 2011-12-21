@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:flexlib="com.flexlib.*"
+					  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScaleToolbarSkin" 
+					  xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+					  creationComplete="onCreationComplete()">
+	<fx:Declarations>
+		<s:Resize id="resizeEffect" target="{this}" />
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.core.IVisualElement;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SlideScaleEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.ContentProperties;
+			
+			[Inject] [Bindable]public var contentModel:ContentModel;
+			
+			[Bindable] private var showing:Boolean = true;
+			
+			private var startDelay:int = 700;
+			private var timerInterval:int = 50;
+			private var timer:Timer;
+			
+			private var originalSize:Point;
+			
+			[Embed('assets/icons/plus-white.png')]
+			[Bindable] private var plusIcon:Class;
+			[Embed('assets/icons/plus-white-disabled.png')]
+			[Bindable] private var plusIconDisabled:Class;
+			[Embed('assets/icons/minus-white.png')]
+			[Bindable] private var minusIcon:Class;
+			[Embed('assets/icons/minus-white-disabled.png')]
+			[Bindable] private var minusIconDisabled:Class;
+			
+			[Embed('assets/icons/hideButton.png')]
+			[Bindable] private var hideIcon:Class;
+			[Embed('assets/icons/showButton.png')]
+			[Bindable] private var showIcon:Class;
+			
+			private var increase:Boolean = false;
+			
+			[Bindable] private var enabledElements:Boolean = true;
+			
+			private function onCreationComplete():void {
+				resetTimer();
+				originalSize = new Point();
+				originalSize.x = width;
+				originalSize.y = height;
+			}
+			
+			private function saveContent():void{
+				var newMediaEvent:Event = new Event(ContentController.SAVE_CONTENT, true);
+				dispatchEvent(newMediaEvent);
+				contentModel.wrapperDispatcher.dispatchEvent("save");
+			}
+			
+			private function contentClick():void
+			{
+				var props:ContentProperties = new ContentProperties();
+				PopUpManager.addPopUp(props, DisplayObject(this.parentApplication), true);
+				PopUpManager.centerPopUp(props);
+			}
+			
+			private function doDecrease(ev:Event = null):void {
+				if (scaleSlider.value > scaleSlider.minimum) {
+					if (scaleSlider.value % 10 == 0)
+						scaleSlider.value -= 10;
+					else
+						scaleSlider.value = Math.floor(scaleSlider.value/10)*10;
+					updateModelScale();
+				}
+			}
+			
+			private function doIncrease(ev:Event = null):void {
+				if (scaleSlider.value < scaleSlider.maximum) {
+					if (scaleSlider.value % 10 == 0)
+						scaleSlider.value += 10;
+					else
+						scaleSlider.value = Math.ceil(scaleSlider.value/10)*10;
+					updateModelScale();
+				}
+			}
+			
+			private function updateModelScale():void {
+				contentModel.slideScale = scaleSlider.value/100;
+				if (btnFitToPage.selected) {
+					btnFitToPage.selected = false;
+					updateModelFitToPage();
+				}
+			}
+			
+			private function updateModelFitToPage():void {
+				contentModel.fitToPage = btnFitToPage.selected;
+				if (contentModel.fitToPage) {
+					dispatchEvent(new SlideScaleEvent(SlideScaleEvent.FIT_TO_PAGE,true));
+				} else {
+					dispatchEvent(new SlideScaleEvent(SlideScaleEvent.SCALE_SLIDE,true));
+				}
+			}
+			
+			private function onIncreaseUp():void {
+				if (timer.running && timer.repeatCount == 1) {
+					doIncrease();
+				}
+				timer.removeEventListener(TimerEvent.TIMER, doIncrease);
+				resetTimer();
+			}
+			
+			private function onIncreaseDown():void {
+				if (enabledElements) {
+					timer.start();
+					increase = true;
+				}
+			}
+			
+			private function onTimerComplete(ev:TimerEvent):void {
+				timer = new Timer(timerInterval);
+				if (increase)
+					timer.addEventListener(TimerEvent.TIMER, doIncrease);
+				else
+					timer.addEventListener(TimerEvent.TIMER, doDecrease);
+				timer.start();
+			}
+			
+			private function onDecreaseUp():void {
+				if (timer.running && timer.repeatCount == 1) {
+					doDecrease();
+				}
+				timer.removeEventListener(TimerEvent.TIMER, doDecrease);
+				resetTimer();
+			}
+			
+			private function onDecreaseDown():void {
+				if (enabledElements) {
+					timer.start();
+					increase = false;
+				}
+			}
+			
+			private function onFitToPageButtonChange():void {
+				updateModelFitToPage();
+			}
+			
+			private function resetTimer():void {
+				if (timer)
+					timer.stop();
+				timer = new Timer(startDelay, 1);
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
+			}
+			
+			[Mediate(event="showSlideThumbnails")]
+			public function onShowSlideThumbnails():void {
+				this.enabledElements = false;
+			}
+			
+			[Mediate(event="showSlideEditor")]
+			public function onShowSlideEditor():void {
+				this.enabledElements = true;
+			}
+			
+			private function onButtonClick():void {
+				scaleSlider.value = 100;
+				updateModelScale();
+			}
+			
+			private function onHideButtonClick():void {
+				resizeEffect.stop();
+				if (showing) {
+					resizeEffect.heightTo = 12;
+				} else {
+					resizeEffect.heightTo = originalSize.y;
+				}
+				resizeEffect.play([this]);
+				showing = !showing;
+			}
+			
+		]]>
+	</fx:Script>
+		<s:VGroup width="100%"
+				  height="100%"
+				  paddingLeft="10" paddingRight="10" paddingBottom="10"
+				  horizontalAlign="center">
+			<!--mx:Image id="hideButton" 
+					  source="{hideIcon}"
+					  click="onHideButtonClick()"/-->
+			<baseComponents:SimpleIconButton width="250" 
+					  height="10" 
+					  bottomLeftCornerRadius="10"
+					  bottomRightCornerRadius="10"
+					  icon="{(showing) ? hideIcon : showIcon}"
+					  click="onHideButtonClick()"/>
+			<s:HGroup id="mainGroup" width="100%" height="100%" verticalAlign="middle" enabled="{contentModel.selectedSlide != null}">
+				<s:Label text="{scaleSlider.value.toString()+'%'}" width="30" />
+				<mx:Image id="btnDecrease"
+						  width="16" 
+						  height="16"
+						  buttonMode="{enabledElements}"
+						  source="{(enabledElements) ? minusIcon : minusIconDisabled}"
+						  mouseDown="onDecreaseDown()"
+						  mouseUp="onDecreaseUp()"
+						  />
+				<s:VGroup width="100%" height="100%">
+					<mx:Spacer height="30%" />
+					<s:HSlider 	id="scaleSlider" 
+								width="150" 
+								maximum="300" 
+								value="{contentModel.slideScale * 100}"
+								change="updateModelScale()"
+								minimum="10" 
+								stepSize="1"
+								enabled="{enabledElements}"
+								slideDuration="0" 
+								liveDragging="true"/>
+					<mx:Spacer height="30%" />
+				</s:VGroup>
+				<mx:Image id="btnIncrease"
+						  buttonMode="{enabledElements}"
+						  width="16" 
+						  height="16"
+						  source="{(enabledElements) ? plusIcon : plusIconDisabled}"
+						  mouseDown="onIncreaseDown()"
+						  mouseUp="onIncreaseUp()"
+						  />
+				<s:ButtonBarButton	id="btnFitToPage"
+									toolTip="Fit to Page" 
+									height="25" 
+									width="35"
+									cornerRadius="10"
+									enabled="{enabledElements}"
+									skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.IconToggleButtonSkin"
+									data="@Embed('assets/icons/arrow-out.png')"
+									selected="{contentModel.fitToPage}"
+								 	change="onFitToPageButtonChange()"/>
+				<s:Button 	click="onButtonClick()" 
+							skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.LabelButtonSkin"
+							label="100%" />
+			</s:HGroup>
+			</s:VGroup>
+</s:SkinnableContainer >

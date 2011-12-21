@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   preinitialize="onPreinitialize()"
+			   xmlns:swiz="http://swiz.swizframework.org" 
+			   xmlns:local="*"
+			   xmlns:mx="library://ns.adobe.com/flex/mx">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.common.events.StateEvent;
+			import uk.co.itrainconsulting.common.utils.DataUtil;
+			import uk.co.itrainconsulting.content.common.model.ExternalInterfaceAware;
+			import uk.co.itrainconsulting.content.common.model.IExternalInterfaceAwareApplication;
+			import uk.co.itrainconsulting.contentviewer.IContentPlayerInterface;
+			import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+			import uk.co.itrainconsulting.contentviewer.model.ViewParamParser;
+			
+			[Bindable]
+			private var _flashVars:Object;
+			
+			private function onPreinitialize():void {
+				var parser:ViewParamParser = new ViewParamParser(this);
+				_flashVars = parser.parseFlashVars();
+				this.addEventListener(StateEvent.STATE_EVENT_READY, onContentPlayerCreationComplete);
+			}
+			
+			private function onContentPlayerCreationComplete(ev:Event):void {
+				previewerContent.loadContent({id: _flashVars.lessonId, published: _flashVars.published},flashVars.loadContentURL);
+				previewerContent.setGaps(_flashVars.topGap, _flashVars.rightGap, _flashVars.bottomGap, _flashVars.leftGap);
+				previewerContent.setAllowScaling(_flashVars.allowScaling);
+				
+				previewerContent.removeEventListener(StateEvent.STATE_EVENT_XML_PARSED, onXMLParsed);
+				previewerContent.addEventListener(StateEvent.STATE_EVENT_XML_PARSED, onXMLParsed);
+			}
+			
+			private function onXMLParsed(e:Event):void {
+				if (_flashVars.showSlideList != undefined && _flashVars.showSlideList != "")
+					previewerContent.changeShowSlideList(_flashVars.showSlideList == "true" ? true : false);
+			}
+			
+			public function get previewerContent():IContentPlayerInterface {
+				return modulePreviewer.child as IContentPlayerInterface;
+			}
+			
+			public function get flashVars():Object {
+				return _flashVars;
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	<swiz:Swiz id="swiz">
+		<swiz:beanProviders>
+			<local:BeansExternalInterface />
+		</swiz:beanProviders>
+		<swiz:config>
+			<swiz:SwizConfig
+				setUpEventType="{ Event.ADDED }"
+				setUpEventPriority="50"
+				tearDownEventType="{ Event.REMOVED_FROM_STAGE }"
+				tearDownEventPhase="{ EventPhase.CAPTURING_PHASE }"
+				tearDownEventPriority="50"
+				eventPackages="uk.co.itrainconsulting.common.events"/>
+		</swiz:config>
+	</swiz:Swiz>
+	</fx:Declarations>
+	<mx:ModuleLoader id="modulePreviewer" url="{_flashVars.playerModuleURL}" width="100%" height="100%"/>
+</s:Application>

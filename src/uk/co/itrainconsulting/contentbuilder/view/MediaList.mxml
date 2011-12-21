@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" title=""
+		 xmlns:s="library://ns.adobe.com/flex/spark"  
+		 skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="600" height="500" addedToStage="init()" 
+		 minWidth="400" minHeight="300"
+		 xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*" 
+		 xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.events.ModelChange;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			
+			import org.swizframework.core.SwizManager;
+			import org.swizframework.core.mxml.Swiz;
+			
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.ImagePreviewIR;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.TemplateIR;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.VideoPreviewIR;
+			import uk.co.itrainconsulting.contentbuilder.view.skins.DraggablePanelSkin;
+			
+			[Bindable]public var closeHandler:Function;
+			[Bindable]public var selectHandler:Function;
+			[Bindable]public var mediaType:EnumObjectType = EnumObjectType.NONE;
+			
+			[Inject] [Bindable] public var contentModel:ContentModel;
+			[Dispatcher] public var dispatcher:IEventDispatcher;
+			
+			private function init():void
+			{
+				switch (mediaType.ordinal){
+					case EnumObjectType.IMAGE.ordinal:
+						this.title = "Image Files";
+						break;
+					case EnumObjectType.VIDEO.ordinal:
+						this.title = "Video Files";
+						break;
+					case EnumObjectType.AUDIO.ordinal:
+						this.title = "Audio Files";
+						break;
+					case EnumObjectType.TEMPLATE.ordinal:
+						this.title = "Templates";
+						break;
+				}
+			}
+			
+			public function refresh():void{
+				mediaListPanel.itemsList = null;
+				var e:Event;
+				switch (mediaType.ordinal){
+					case EnumObjectType.IMAGE.ordinal:
+						e = new Event(ContentController.GET_IMAGE_LIST, true);
+						break;
+					case EnumObjectType.VIDEO.ordinal:
+						e = new Event(ContentController.GET_VIDEO_LIST, true);
+						break;
+					case EnumObjectType.AUDIO.ordinal:
+						e = new Event(ContentController.GET_AUDIO_LIST, true);
+						break;
+					case EnumObjectType.TEMPLATE.ordinal:
+						e = new Event(ContentController.GET_TEMPLATE_LIST, true);
+						break;
+				}
+				dispatcher.dispatchEvent(e);
+			}
+			
+			[Mediate(event="imageListRetrieved")]
+			[Mediate(event="videoListRetrieved")]
+			[Mediate(event="audioListRetrieved")]
+			[Mediate (event="templateListRetrieved", priority="0")]
+			public function showTamplateList():void {
+				if (mediaType.equals(EnumObjectType.TEMPLATE)) {
+					mediaListPanel.labelField = "title";
+					mediaListPanel.itemsList = contentModel.templates.getAll();
+				} else {
+					mediaListPanel.labelField = "name";
+					mediaListPanel.itemsList = contentModel.retrievedList;
+				}
+				switch (mediaType.ordinal) {
+					case EnumObjectType.IMAGE.ordinal:
+						mediaListPanel.itemRenderer= new ClassFactory(ImagePreviewIR);
+						break;
+					case EnumObjectType.AUDIO.ordinal:
+					case EnumObjectType.VIDEO.ordinal:
+						mediaListPanel.itemRenderer= new ClassFactory(VideoPreviewIR);
+						break;
+					case EnumObjectType.TEMPLATE.ordinal:
+						mediaListPanel.itemRenderer= new ClassFactory(TemplateIR);
+						break;
+				}
+			}
+			
+			
+			//resize props
+			private var _resizeTimer:Timer = new Timer(10);
+			private var _resizeInitPoint:Point;
+			private var _resizeHandle:UIComponent;
+			private var draggedPosition:Point = new Point();
+			
+			protected function resizeMouseDown():void{
+				draggedPosition.x = this.x;
+				draggedPosition.y = this.y;
+				_resizeInitPoint = new Point(resizeButton.mouseX, resizeButton.mouseY);
+				_resizeTimer.addEventListener(TimerEvent.TIMER, onResizeTimerTick, false, 0, true);
+				this.parent.addEventListener(MouseEvent.MOUSE_UP, globalMouseUp);
+				_resizeTimer.start();
+			}
+			protected function globalMouseUp(e:MouseEvent):void{
+				resizeMouseUp();
+			}
+			protected function resizeMouseUp():void{
+				this.parent.removeEventListener(MouseEvent.MOUSE_UP, globalMouseUp);
+				_resizeTimer.stop();
+				_resizeTimer.removeEventListener(TimerEvent.TIMER, onResizeTimerTick);
+			}
+			private function onResizeTimerTick(event:TimerEvent):void{
+				var currentMousePoint:Point = new Point(resizeButton.mouseX, resizeButton.mouseY);
+				var gPoint:Point = resizeButton.localToGlobal(currentMousePoint);
+				var lPoint:Point = this.parent.globalToLocal(gPoint);
+				var newWidth:Number = this.width + lPoint.x - (this.width + this.x) + (resizeButton.width/2) + 2;
+				var newHeight:Number = this.height + lPoint.y - (this.height + this.y) + (resizeButton.height/2) + 2;
+				if(newWidth > this.minWidth){
+					this.width = newWidth;
+				}
+				if(newHeight > this.minHeight){
+					this.height = newHeight;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" gap="0">
+		<view:MediaItemsPanel 	id="mediaListPanel" 
+								width="100%" height="100%"
+								mediaType="{mediaType}"
+								selectHandler="{selectHandler}"
+								closeHandler="{closeHandler}"
+								itemRenderer="{new ClassFactory(ImagePreviewIR)}" />
+		<s:Group width="100%" >
+			<s:Rect radiusX="0" radiusY="0" height="100%" width="100%">
+				<s:fill> 
+					<s:LinearGradient rotation="90"> 
+						<s:entries>  
+							<s:GradientEntry ratio="0" alpha="1" color="#F7F7F7"/>
+							<s:GradientEntry ratio="1" alpha="1" color="#E5E5E5"/>
+						</s:entries> 
+					</s:LinearGradient> 
+				</s:fill> 
+			</s:Rect>
+			<mx:HRule width="100%" height="1" top="0" strokeColor="0xcccccc" shadowColor="0x00ffffff" />
+			<s:HGroup width="100%" verticalAlign="middle"
+					  paddingBottom="5" paddingLeft="2" paddingRight="26" paddingTop="5">
+				<mx:Spacer width="100%" />
+				<s:Button label="Select" click="mediaListPanel.okClickHandler()" 
+						  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin" />
+				<s:Button label="Cancel" click="{mediaListPanel.cancelClickHandler()}" 
+						  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin" />
+				
+			</s:HGroup>
+			<mx:Image source="@Embed('assets/resizertransp.png')" width="14" height="14" right="5" bottom="5"
+					  id="resizeButton" mouseDown="resizeMouseDown()" mouseUp="resizeMouseUp()" />
+		</s:Group>
+	</s:VGroup>
+</s:Panel>

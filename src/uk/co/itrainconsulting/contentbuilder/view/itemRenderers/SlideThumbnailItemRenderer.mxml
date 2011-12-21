@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx" 
+		width="100%" height="100%" 
+		cacheAsBitmap="true"
+		xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import uk.co.itrainconsulting.contentbuilder.control.events.RenderEvent;
+			
+			[Bindable] public static var thumbWidth:int = 240;
+			[Bindable] public static var thumbHeight:int = 180;
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+		<view:SlideThumbnail id="slideThumbnail" 
+							 width="100%" height="100%"
+							 slide="{data}" maxW="{thumbWidth}"
+							 maxH="{thumbHeight}" mouseEnabled="true"
+							 creationComplete="{dispatchEvent(new RenderEvent(RenderEvent.RENDER_COMPLETE, true))}"
+							 removedFromStage="{dispatchEvent(new RenderEvent(RenderEvent.RENDER_REMOVED, true))}"
+							 mouseChildren="false"/>
+	</s:VGroup>
+</s:ItemRenderer>

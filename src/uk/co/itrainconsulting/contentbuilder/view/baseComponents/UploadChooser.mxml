@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 initialize="onInitialize()"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.managers.PopUpManager;
+
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
+			import uk.co.itrainconsulting.contentbuilder.model.fileupload.events.FileUploadEvent;
+			import uk.co.itrainconsulting.contentbuilder.utils.AssetUtils;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.AssetItemRenderer;
+
+			private var _addFileReferenceList:FileReferenceList=new FileReferenceList();
+
+			[Bindable]
+			private var _loadQueue:ArrayCollection=new ArrayCollection();
+
+			[Bindable]
+			public var selectedItems:ArrayCollection=new ArrayCollection();
+
+			[Bindable]
+			public var fileTypes:Array;
+
+			private function onInitialize():void
+			{
+				_addFileReferenceList.addEventListener(Event.SELECT, onFileSelection);
+			}
+
+			private function onFileSelection(e:Event):void
+			{
+				var toAdd:ArrayCollection=new ArrayCollection();
+				var fileReferenceWrapper:FileReferenceWrapper;
+				for each (var fr:FileReference in _addFileReferenceList.fileList)
+				{
+					fileReferenceWrapper=new FileReferenceWrapper(fr);
+					toAdd.addItem(fileReferenceWrapper);
+				}
+				_loadQueue.addAll(toAdd);
+				populateUnique(selectedItems, toAdd);
+				for each (var frw:FileReferenceWrapper in toAdd)
+				{
+					frw.addEventListener(FileUploadEvent.LOADING_COMPLETE, onFileLoadingComplete);
+					frw.load();
+				}
+			}
+
+			private function populateUnique(targetCollection:ArrayCollection, addedCollection:ArrayCollection):void
+			{
+				for each (var afrw:FileReferenceWrapper in addedCollection)
+				{
+					for each (var tfrw:FileReferenceWrapper in targetCollection)
+					{
+						if (tfrw.name == afrw.name)
+						{
+							targetCollection.removeItemAt(targetCollection.getItemIndex(tfrw));
+							break;
+						}
+					}
+				}
+				targetCollection.addAll(addedCollection);
+			}
+
+			private function onFileLoadingComplete(e:FileUploadEvent):void
+			{
+				var frw:FileReferenceWrapper=e.target as FileReferenceWrapper;
+				frw.removeEventListener(FileUploadEvent.LOADING_COMPLETE, onFileLoadingComplete);
+				_loadQueue.removeItemAt(_loadQueue.getItemIndex(frw));
+			}
+
+			public function selectFiles():void
+			{
+				var frl:FileReferenceList=new FileReferenceList();
+				clearFileReferenceList(_addFileReferenceList);
+				_addFileReferenceList.browse(fileTypes);
+			}
+
+			private function clearFileReferenceList(frl:FileReferenceList):void
+			{
+				if (frl.fileList)
+				{
+					while (frl.fileList.length)
+						frl.fileList.pop();
+				}
+			}
+
+
+			public function clear():void
+			{
+				clearFileReferenceList(_addFileReferenceList);
+				_loadQueue.removeAll();
+				selectedItems.removeAll();
+			}
+		]]>
+	</fx:Script>
+	<s:List id="lstList"
+			dataProvider="{selectedItems}"
+			width="100%"
+			height="100%"
+			minWidth="{this.width/2}"
+			doubleClickEnabled="true"
+			labelField="name"
+			itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.AssetItemRenderer"
+			skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SlideListSkin">
+		<s:layout>
+			<s:TileLayout/>
+		</s:layout>
+	</s:List>
+	<s:VGroup width="100%"
+			  height="100%"
+			  verticalAlign="middle"
+			  horizontalAlign="center"
+			  visible="{selectedItems.length == 0}"
+			  includeInLayout="{selectedItems.length == 0}">
+		<s:Label text="Select files to upload"/>
+	</s:VGroup>
+</s:Group>
+

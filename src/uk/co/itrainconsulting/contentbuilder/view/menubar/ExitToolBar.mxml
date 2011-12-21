@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:flexlib="com.flexlib.*"
+					  xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+					  xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+					  toolTip="Working Toolbar">
+	<fx:Declarations>
+
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[	
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			
+			[Inject] [Bindable]public var contentModel:ContentModel;
+			
+			private function exitContent():void{
+				var javascriptFunction:String = contentModel.closeBuilderFunction;
+				if(ExternalInterface.available && javascriptFunction)
+				{
+					ExternalInterface.call(javascriptFunction);
+				}
+				contentModel.wrapperDispatcher.dispatchEvent("exit");
+			}
+			
+		]]>
+	</fx:Script>
+
+	<baseComponents:IconButton click="exitContent()" 
+							   icon="@Embed('assets/icons/closeIcon.png')" 
+							   label="Exit" 
+							   labelGap="6" />
+	<mx:Spacer width="10"/>
+</s:HGroup>

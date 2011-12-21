@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			
+			[Bindable] public var title:String = "";
+			[Bindable] public var hasIcon:Boolean = true;
+			[Bindable] public var icon:Class;
+			
+		]]>
+	</fx:Script>
+	<s:layout><s:BasicLayout /></s:layout>
+	<s:Rect radiusX="0" radiusY="0" height="100%" width="100%">
+		<s:stroke>
+			<s:Stroke color="#B4B4B4" alpha="1"/>
+		</s:stroke> 
+		<s:fill> 
+			<s:LinearGradient rotation="90"> 
+				<s:entries>  
+					<s:GradientEntry ratio="0" alpha="1" color="#C5C5C5"/>
+					<s:GradientEntry ratio="0.1" alpha="1" color="#E0E0E0"/>
+					<s:GradientEntry ratio="1" alpha="1" color="#C9C9C9"/>
+				</s:entries> 
+			</s:LinearGradient> 
+		</s:fill> 
+	</s:Rect>
+	<s:Line left="0" right="0" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="0xB4B4B4" weight="1" />
+		</s:stroke>
+	</s:Line>
+	<s:Group width="100%" height="100%">
+		<s:layout>
+			<s:HorizontalLayout verticalAlign="middle" gap="9" paddingBottom="8" paddingTop="13" paddingLeft="10" paddingRight="10" />
+		</s:layout>
+		<mx:Image source="{icon}" visible="{hasIcon}" includeInLayout="{hasIcon}"/>
+		<s:Label text="{title}" fontSize="16" paddingTop="4" />
+	</s:Group>
+</s:Group>

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:control="uk.co.itrainconsulting.contentbuilder.control.*"
+               xmlns:view1="uk.co.itrainconsulting.contentviewer.view.*"
+               xmlns:local="*"
+               xmlns:swiz="http://swiz.swizframework.org"
+               xmlns:menubar="uk.co.itrainconsulting.contentbuilder.view.menubar.*"
+               width="100%"
+               height="100%"
+               frameRate="60"
+               initialize="onInitialize(event)"
+               addedToStage="onAddedToStage()"
+               applicationComplete="onCreationComplete(event)"
+               xmlns:flexlib="com.flexlib.*"
+               xmlns:baseComponents="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*">
+    <fx:Style source="ContentBuilder.css"/>
+    <fx:Script>
+        <![CDATA[
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.operations.CopyOperation;
+			import flashx.textLayout.operations.PasteOperation;
+			import flashx.textLayout.utils.CharacterUtil;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.TextArea;
+			import mx.core.UITextField;
+			import mx.events.CloseEvent;
+			import mx.events.DynamicEvent;
+			import mx.events.FlexEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.managers.PopUpManager;
+			import mx.modules.ModuleLoader;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.swizframework.core.SwizManager;
+			
+			import spark.components.Button;
+			import spark.components.RichEditableText;
+			
+			import uk.co.itrainconsulting.common.events.ServiceEvent;
+			import uk.co.itrainconsulting.common.events.StateEvent;
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.common.utils.DataUtil;
+			import uk.co.itrainconsulting.common.utils.ServiceUtils;
+			import uk.co.itrainconsulting.content.common.model.ParamParser;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.ContentLoadedEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.CopyPasteEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.AssetsRepository;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.model.EditorParamParser;
+			import uk.co.itrainconsulting.contentbuilder.model.EnumBGType;
+			import uk.co.itrainconsulting.contentbuilder.model.UploadBean;
+			import uk.co.itrainconsulting.contentviewer.IContentPlayerInterface;
+			import uk.co.itrainconsulting.contentviewer.control.ContentViewController;
+			import uk.co.itrainconsulting.contentviewer.control.events.ContentViewLoadedEvent;
+			import uk.co.itrainconsulting.contentviewer.model.ContentViewModel;
+
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+            [Inject]
+            [Bindable]
+            public var contentController:ContentController;
+
+            private function onInitialize(event:FlexEvent):void {
+                var parser:EditorParamParser=new EditorParamParser(this);
+                var flashVars:Object=parser.parseFlashVars();
+
+                contentModel.allowScaling=flashVars.allowScaling;
+
+                var de:DynamicEvent=new DynamicEvent(ContentController.FLASHVARS_READY, true);
+                de.flashvars=flashVars;
+                dispatchEvent(de);
+
+                saveService.url=flashVars.saveContentURL;
+                loadService.url=flashVars.loadContentURL;
+                templateService.url=flashVars.getTemplateURL;
+                getAssets.url=flashVars.getAssetsURL;
+                getAttachments.url=flashVars.getAttachmentsURL;
+
+                contentModel.wrapperDispatcher.dispatchEvent("preinitialize");
+            }
+
+            protected function onCreationComplete(event:FlexEvent):void {
+                this.setStyle("modalTransparencyColor", 0x000000);
+                contentModel.wrapperDispatcher.dispatchEvent("creation_complete");
+
+                this.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownBubble);
+                this.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCapture, true);
+                this.addEventListener(Event.PASTE, onPasteEvent);
+                this.addEventListener(CopyPasteEvent.PASTE, onPasteEvent);
+
+                loadService.send({"id": contentModel.lessonId});
+            }
+
+            private function onAddedToStage():void {
+                buildCopyXMLContextMenu();
+            }
+
+            private function buildCopyXMLContextMenu():void {
+                var rcMenuItem:ContextMenuItem=new ContextMenuItem("Copy Presentation XML");
+                rcMenuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, onCopyXML);
+
+                var customContextMenu:ContextMenu=new ContextMenu();
+                customContextMenu.customItems.push(rcMenuItem);
+                this.contextMenu=customContextMenu;
+            }
+
+            private function onCopyXML(e:ContextMenuEvent):void {
+                if (contentModel.slides)
+                    System.setClipboard(contentController.generateXML());
+                else
+                    System.setClipboard("There is no Presentation in the Editor.");
+                Alert.show("Presentation XML copied to the system clipboard.", "Presentation copied");
+            }
+
+            private function isTextInput(o:Object):Boolean {
+                return o is UITextField || o is RichEditableText;
+            }
+
+            private function onPasteEvent(ev:Event):void {
+                if (!isTextInput(ev.target)) {
+                    dispatchEvent(new Event(ContentController.OBJECT_PASTED, true));
+                }
+            }
+
+            private function onKeyDownBubble(ev:KeyboardEvent):void {
+                if (ev.keyCode == Keyboard.DELETE && !isTextInput(ev.target)) {
+                    ev.stopImmediatePropagation();
+                    dispatchEvent(new EditorEvent(EditorEvent.DELETE_MEDIA, true));
+                } else if (ev.keyCode == 67 && ev.ctrlKey) {
+                    dispatchEvent(new Event(ContentController.OBJECT_COPIED, true));
+                }
+            }
+
+            private function onKeyDownCapture(e:KeyboardEvent):void {
+                if (e.target is Button && e.keyCode == Keyboard.ENTER) {
+                    var btn:Button=e.target as Button;
+                    btn.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+                }
+            }
+
+            private function saveServiceFaultHandler(ef:FaultEvent):void {
+                var e:ServiceEvent=new ServiceEvent(ServiceEvent.CONTENT_SAVE_FAILED, true);
+                e.data=ServiceUtils.buildFaultParameters(ef, false);
+                dispatchEvent(e);
+                contentModel.wrapperDispatcher.dispatchEvent("save_fault");
+            }
+
+            private function loadServiceFaultHandler(ef:FaultEvent):void {
+                var e:ServiceEvent=new ServiceEvent(ServiceEvent.CONTENT_LOAD_FAILED, true);
+                e.data=ServiceUtils.buildFaultParameters(ef, true);
+                dispatchEvent(e);
+            }
+
+            private function xmlTemplateFaultHandler(ef:FaultEvent):void {
+                var e:ServiceEvent=new ServiceEvent(ServiceEvent.TEMPLATES_LOAD_FAILED, true);
+                e.data=ServiceUtils.buildFaultParameters(ef, false);
+                dispatchEvent(e);
+            }
+
+            private function getListFaultHandler(ef:FaultEvent):void {
+                var e:ServiceEvent=new ServiceEvent(ServiceEvent.TEMPLATES_LOAD_FAILED, true);
+                e.data=ServiceUtils.buildFaultParameters(ef, false);
+                dispatchEvent(e);
+            }
+            [Bindable]
+            private var topPadding:Number=42;
+            [Bindable]
+            private var mainPadding:Number=0;
+
+            [Mediate(event="clearFocus")]
+            public function clearFocus():void {
+                this.focusManager.setFocus(focusSponge);
+            }
+
+            private function xmlResultHandler(event:ResultEvent):void {
+                dispatchEvent(new ContentLoadedEvent(event.result as XML, true));
+                contentModel.previewXML=event.result as XML;
+                //dispatchEvent(new ContentViewLoadedEvent(event.result as XML));
+            }
+
+            private function xmlTemplateResultHandler(ev:ResultEvent):void {
+                var de:DynamicEvent=new DynamicEvent(ContentController.TEMPLATE_LIST_RETRIEVED, true);
+                de.xml=ev.result as XML;
+                dispatchEvent(de);
+            }
+
+            private function loadServiceResultHandler(event:ResultEvent):void {
+                addContentToModel(event.result);
+            }
+
+            private function addContentToModel(contentObject:Object):void {
+                dispatchEvent(new ContentLoadedEvent(contentObject as XML, true));
+                contentModel.previewXML=contentObject as XML;
+                contentModel.wrapperDispatcher.dispatchEvent("read_content_success");
+            }
+
+            private function saveServiceResultHandler(event:ResultEvent):void {
+                dispatchEvent(new ServiceEvent(ServiceEvent.CONTENT_SAVED, true));
+            }
+
+            private function getListResultHandler(event:ResultEvent, attachment:Boolean):void {
+                var de:DynamicEvent=new DynamicEvent(AssetsRepository.ASSETS_RETRIEVED, true);
+                de.xml=event.result as XML;
+                de.isAttachment=attachment;
+                dispatchEvent(de);
+            }
+
+            [Mediate(event="getAllAssetsList")]
+            [Mediate(event="getVideoList")]
+            [Mediate(event="getImageList")]
+            [Mediate(event="getAudioList")]
+            public function getAssetsList(de:DynamicEvent):void {
+                var params:Object={};
+                var type:String="";
+                if (de.type == "getVideoList") {
+                    type="flv";
+                        //getListService.url = "assets/video_list.xml";
+                } else if (de.type == "getImageList") {
+                    type="image";
+                        //getListService.url = "assets/images_list.xml";
+                } else if (de.type == "getAudioList") {
+                    type="audio";
+                        //getListService.url = "assets/audio_list.xml";
+                } else {
+                    type="";
+                        //getListService.url = "http://luke.stratus.itrain.co.uk/stratus/doc.assets_search";
+                }
+                if (de.isAttachment) {
+                    params.attached_to=UploadBean.PAGE_ID;
+                    params.format="xml";
+                    params.attachment_type="PAGE_HIDDEN";
+                    params.extension=type;
+                    getAttachments.send(params);
+                } else {
+                    params.p_name="";
+                    params.p_file_type=type;
+                    getAssets.send(params);
+                }
+            }
+
+            public function getAttachmentList():void {
+
+            }
+
+            [Mediate(event="getTemplateList")]
+            public function getTemplateList(ev:Event):void {
+                contentModel.listType=EnumObjectType.TEMPLATE;
+                templateService.send();
+            }
+
+            [Mediate(event="saveContent")]
+            public function saveContent():void {
+                var params:Object={};
+                params.id=contentModel.lessonId;
+                contentController.generateXML();
+                var content:XML=contentModel.previewXML;
+                params.data=DataUtil.chunkString(content.toXMLString());
+                saveService.send(params);
+            }
+
+            /////////////////////////////////////////////
+
+            [Mediate(event="loadPreviewer")]
+            public function loadPreviewer():void {
+                PopUpManager.addPopUp(previewer, this, true);
+                PopUpManager.centerPopUp(previewer);
+                modulePreviewer.loadModule(contentModel.playerModulePath);
+                loader.visible=loader.includeInLayout=true;
+            }
+
+
+            private function moduleCloseHandler():void {
+                loader.visible=loader.includeInLayout=true;
+                SwizManager.removeSwiz((modulePreviewer.child as IContentPlayerInterface).getSwiz());
+                modulePreviewer.unloadModule();
+                PopUpManager.removePopUp(previewer);
+            }
+
+            private function onPreviewerCreationComplete(ev:Event):void {
+                loader.visible=loader.includeInLayout=false;
+                var previewerContent:IContentPlayerInterface=modulePreviewer.child as IContentPlayerInterface;
+                if (contentModel.selectedSlideOnly) {
+                    var index:Number=contentModel.slides.getSlideIndex(contentModel.selectedSlide);
+                    previewerContent.setNewContent(contentModel.previewXML, index);
+                } else {
+                    previewerContent.setNewContent(contentModel.previewXML);
+                }
+                previewerContent.contentProperties=contentModel.contentProps;
+                previewerContent.setAllowScaling(contentModel.allowScaling);
+            }
+
+            /////////////////////////////////////////////
+
+            [Mediate(event="showSlideEditor")]
+            public function showEditorPanel():void {
+                slideEditor.visible=slideEditor.includeInLayout=true;
+                slideList.visible=slideList.includeInLayout=true;
+                slideThumbnails.visible=slideThumbnails.includeInLayout=false;
+                scaleToolBar.visible=scaleToolBar.includeInLayout=true;
+            }
+
+            [Mediate(event="showSlideThumbnails")]
+            public function showSlideThumbnails():void {
+                slideEditor.visible=slideEditor.includeInLayout=false;
+                slideList.visible=slideList.includeInLayout=false;
+                slideThumbnails.visible=slideThumbnails.includeInLayout=true;
+                scaleToolBar.visible=scaleToolBar.includeInLayout=false;
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <!--ToolBar items effects>
+        <mx:Move duration="250" id="DockerMove"/>
+        <mx:Fade duration="250" id="DockerFade"/>
+        <Other declarations-->
+        <s:HTTPService id="templateService"
+                       url="assets/templates.xml"
+                       resultFormat="e4x"
+                       result="xmlTemplateResultHandler(event);"
+                       fault="xmlTemplateFaultHandler(event);"/>
+        <s:HTTPService id="loadService"
+                       url=""
+                       method="POST"
+                       resultFormat="e4x"
+                       result="loadServiceResultHandler(event);"
+                       fault="loadServiceFaultHandler(event);"/>
+        <s:HTTPService id="saveService"
+                       method="POST"
+                       resultFormat="e4x"
+                       url=""
+                       result="saveServiceResultHandler(event);"
+                       fault="saveServiceFaultHandler(event);"/>
+        <s:HTTPService id="getAssets"
+                       resultFormat="e4x"
+                       method="GET"
+                       result="getListResultHandler(event, false)"
+                       fault="getListFaultHandler(event)"/>
+        <s:HTTPService id="getAttachments"
+                       method="GET"
+                       resultFormat="e4x"
+                       result="getListResultHandler(event, true)"
+                       fault="getListFaultHandler(event)"/>
+
+
+        <swiz:Swiz id="swiz">
+            <swiz:beanProviders>
+                <local:BeansBuilder/>
+            </swiz:beanProviders>
+            <swiz:config>
+                <swiz:SwizConfig setUpEventType="{ Event.ADDED }"
+                                 setUpEventPriority="50"
+                                 tearDownEventType="{ Event.REMOVED_FROM_STAGE }"
+                                 tearDownEventPhase="{ EventPhase.CAPTURING_PHASE }"
+                                 tearDownEventPriority="50"
+                                 eventPackages="{['uk.co.itrainconsulting.contentbuilder.control.events', 'uk.co.itrainconsulting.common.events']}"
+                                 viewPackages="uk.co.itrainconsulting.contentbuilder.view"/>
+            </swiz:config>
+
+        </swiz:Swiz>
+
+        <!--swiz:SwizConfig xmlns:swizframework="org.swizframework.*"
+          viewPackages="{['','uk.co.itrainconsulting.contentbuilder.view',
+          'uk.co.itrainconsulting.contentbuilder.view.propertiesPanels']}"
+          eventPackages="{['uk.co.itrainconsulting.contentbuilder.control.events']}"
+          mediateBubbledEvents="true" strict="true"
+          beanLoaders="{[BeansBuilder]}"
+          /-->
+
+        <s:TitleWindow id="previewer"
+                       title="Preview Window"
+                       width="{this.width * 0.8}"
+                       height="{this.height * 0.9}"
+                       close="moduleCloseHandler()"
+                       initialize="{previewer.addEventListener(StateEvent.STATE_EVENT_READY, onPreviewerCreationComplete)}">
+            <s:layout>
+                <s:BasicLayout/>
+            </s:layout>
+            <mx:SWFLoader id="loader"
+                          source="@Embed('assets/basicBlackPreloader.swf')"
+                          width="100"
+                          height="100"
+                          verticalCenter="0"
+                          horizontalCenter="0"/>
+            <s:ModuleLoader id="modulePreviewer"
+                            width="100%"
+                            height="100%"/>
+        </s:TitleWindow>
+    </fx:Declarations>
+    <!-- Other components -->
+    <s:Group id="mainGroup"
+             left="{mainPadding}"
+             right="{mainPadding}"
+             bottom="{mainPadding}"
+             width="{this.width}"
+             height="{this.height}">
+        <s:layout>
+            <s:BasicLayout clipAndEnableScrolling="false"/>
+        </s:layout>
+        <view:Background width="100%"
+                         height="100%"/>
+        <s:HGroup width="100%"
+                  height="100%"
+                  gap="0"
+                  y="{maintoolbar.height}">
+            <view:SlideList id="slideList"
+                            width="200"
+                            height="100%"
+                            padding="0"
+                            minWidth="200"/>
+            <view:SlideEditor id="slideEditor"
+                              width="100%"
+                              height="100%"/>
+            <view:SlideThumbnailsPanel id="slideThumbnails"
+                                       width="100%"
+                                       includeInLayout="false"
+                                       visible="false"
+                                       paddingTop="20"
+                                       paddingLeft="20"
+                                       height="100%"
+                                       minWidth="300"/>
+            <view:PropertiesPanel width="30%"
+                                  height="100%"
+                                  visible="{contentModel.selectedSlide != null}"
+                                  minWidth="200"
+                                  maxWidth="300"
+                                  includeInLayout="{contentModel.selectedSlide != null}"/>
+        </s:HGroup>
+        <menubar:MainToolbar id="maintoolbar"
+                             width="100%"
+                             minWidth="400"/>
+        <menubar:ScaleToolBar id="scaleToolBar"
+                              x="{slideEditor.x + slideEditor.width - scaleToolBar.width}"
+                              y="{maintoolbar.height + slideEditor.y + slideEditor.height - scaleToolBar.height}"/>
+        <s:Button id="focusSponge"
+                  label="Clear Focus"
+                  click="clearFocus()"
+                  includeInLayout="false"/>
+        <s:Rect width="1"
+                height="100%"
+                left="0">
+            <s:fill>
+                <s:SolidColor color="0x96999a"/>
+            </s:fill>
+        </s:Rect>
+        <baseComponents:Messager id="messager"
+                                 depth="3"
+                                 top="{maintoolbar.height + 20}"/>
+    </s:Group>
+</s:Application>

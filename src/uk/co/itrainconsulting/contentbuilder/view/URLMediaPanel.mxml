@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  paddingTop="10"
+		  paddingLeft="10"
+		  paddingBottom="10"
+		  paddingRight="10"
+		  removedFromStage="onRemovedFromStage()"
+		  creationComplete="onCreationComplete()"
+		  xmlns:so="uk.co.itrainconsulting.contentviewer.view.stageObjects.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.SWFLoader;
+			
+			import org.osmf.events.MediaPlayerStateChangeEvent;
+			import org.osmf.events.TimeEvent;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.events.IOErrEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SecurityErrEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			
+			
+			[Bindable] public var selectedItem:Object = null;
+			[Bindable] public var mediaType:EnumObjectType;
+			
+			private var continueAudioLoad:Boolean = true;
+			
+			private function onCreationComplete():void {
+				this.addEventListener(SecurityErrEvent.SECURITY_ERR, onSecurityErrorEvent);
+				this.addEventListener(IOErrEvent.IO_ERR, onIOErrorEvent);
+			}
+			
+			private function onIOErrorEvent(e:Event = null):void {
+				lblInfo.text = "It seems the URL address is incorrect!"
+				lblInfo.visible = lblInfo.includeInLayout = true;
+				continueAudioLoad = audioPlayer.enabled = false;
+				selectedItem = null;
+			}
+			
+			private function onSecurityErrorEvent(e:Event = null):void {
+				lblInfo.text = "A Securtiy error has occured!";
+				lblInfo.visible = lblInfo.includeInLayout = true;
+				continueAudioLoad = audioPlayer.enabled = false;
+				selectedItem = null;
+			}
+			
+			private function doLoad():void {
+				try {
+					selectedItem = null;
+					if (mediaType.equals(EnumObjectType.AUDIO)) {
+						if (txtURL.text) {
+							continueAudioLoad = true;
+							audioPlayer.source = txtURL.text;
+							if (continueAudioLoad)
+								loadComplete(audioPlayer);
+						} else {
+							lblInfo.text = "Preview";
+						}
+					} else if (mediaType.equals(EnumObjectType.IMAGE)) {
+						swfLoader.visible = swfLoader.includeInLayout = false;
+						grLoader.visible = grLoader.includeInLayout = true;
+						lblInfo.visible = lblInfo.includeInLayout = false;
+						swfLoader.load(txtURL.text);
+					} else if (mediaType.equals(EnumObjectType.VIDEO)) {
+						vidPlayer.stop();
+						vidPlayer.source = txtURL.text;
+						vidPlayer.play();
+					}
+				} catch (e:Error) {
+					if (e is SecurityError)
+						loadSecurityError();
+					else if (e is IOError)
+						loadIOError();
+				}
+			}
+			
+			private function loadComplete(o:Object):void {
+				lblInfo.text = "Preview";				
+				if (o == swfLoader) {
+					swfLoader.visible = swfLoader.includeInLayout = true;
+					lblInfo.visible = lblInfo.includeInLayout = false;
+					grLoader.visible = grLoader.includeInLayout = false;
+				} else if (o == audioPlayer) {
+					audioPlayer.visible = audioPlayer.includeInLayout = true;
+					audioPlayer.enabled = true;
+				}
+				selectedItem = new Object();
+				selectedItem.name = "URL object";
+				selectedItem.url = txtURL.text;
+			}
+			
+			private function loadIOError():void {
+				lblInfo.text = "It seems the URL address is incorrect!"
+				swfLoader.visible = swfLoader.includeInLayout = false;
+				audioPlayer.visible = audioPlayer.includeInLayout = false;
+				grLoader.visible = grLoader.includeInLayout = false;
+				vidPlayer.visible = vidPlayer.includeInLayout = false;
+				lblInfo.visible = lblInfo.includeInLayout = true;
+				selectedItem = null;
+			}
+			
+			private function loadSecurityError():void {
+				lblInfo.text = "A Securtiy error has occured!";
+				swfLoader.visible = swfLoader.includeInLayout = false;
+				audioPlayer.visible = audioPlayer.includeInLayout = false;
+				grLoader.visible = grLoader.includeInLayout = false;
+				vidPlayer.visible = vidPlayer.includeInLayout = false;
+				lblInfo.visible = lblInfo.includeInLayout = true;
+				selectedItem = null;
+			}
+			
+			private function onRemovedFromStage():void {
+				txtURL.text = "";
+				lblInfo.text = "Preview";
+				lblInfo.visible = lblInfo.includeInLayout = true;
+				swfLoader.unloadAndStop();
+				swfLoader.source = "";
+				swfLoader.visible = swfLoader.includeInLayout = false;
+				audioPlayer.stopSound();
+				audioPlayer.enabled = false;
+				audioPlayer.source = "";
+				vidPlayer.stop();
+				vidPlayer.source = null;
+				grLoader.visible = grLoader.includeInLayout = false;
+			}
+			
+			private function onVPChange(e:TimeEvent):void {
+				if (e.time != 0) {
+					loadComplete(vidPlayer);
+				} else {
+					selectedItem = null;
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" 
+			  verticalAlign="middle">
+		<s:Label text="URL:" />
+		<s:TextInput id="txtURL" 
+					 width="100%" 
+					 enter="{doLoad()}"/>
+		<s:Button id="btnLoad"
+				  click="{doLoad()}"
+				  label="Preview" />
+	</s:HGroup>
+	<s:VGroup width="100%"
+			  height="100%"
+			  verticalAlign="middle"
+			  horizontalAlign="center">
+		<s:Group width="80%"
+				 height="80%">
+			<s:Rect width="100%"
+					height="100%"
+					radiusX="10"
+					radiusY="10">
+				<s:stroke>
+					<s:SolidColorStroke color="#B4B4B4" weight="3"/>
+				</s:stroke>
+				<s:fill>
+					<s:SolidColor color="#FFFFFF"/>
+				</s:fill>
+			</s:Rect>
+			<s:VGroup width="100%" 
+					  height="100%"
+					  horizontalAlign="center"
+					  verticalAlign="middle">
+				<s:HGroup id="grLoader"
+						  width="100%" height="100%" 
+						  verticalAlign="middle"
+						  horizontalAlign="center"
+						  visible="false"
+						  includeInLayout="false">
+					<!-- loader graphic -->
+					<mx:SWFLoader id="loaderGraphic" source="@Embed('assets/basicBlackPreloader.swf')" width="100" height="100" />
+				</s:HGroup>
+				<mx:SWFLoader	id="swfLoader"
+								maxWidth="260"
+								maxHeight="260"
+								includeInLayout="false"
+								verticalAlign="middle"
+								horizontalAlign="center"
+								visible="false"
+								securityError="loadSecurityError()"
+								ioError="loadIOError()"
+								complete="loadComplete(swfLoader)"/>	
+				<s:VideoPlayer id="vidPlayer"
+							   maxWidth="260"
+							   maxHeight="260"
+							   autoPlay="true"
+							   includeInLayout="{mediaType.equals(EnumObjectType.VIDEO)}"
+							   visible="{vidPlayer.includeInLayout}"
+							   durationChange="onVPChange(event)" />
+				<so:AudioPlayerView	id="audioPlayer"
+							  		maxWidth="200"
+							   		maxHeight="200"
+									enabled="false"
+							   		includeInLayout="{mediaType.equals(EnumObjectType.AUDIO)}"
+							   		visible="{audioPlayer.includeInLayout}"/>
+				<s:Label id="lblInfo" 
+						 text="Preview"
+						 fontSize="14"
+						 includeInLayout="{!mediaType.equals(EnumObjectType.VIDEO)}"
+						 visible="{lblInfo.includeInLayout}"/>
+			</s:VGroup>
+		</s:Group>
+	</s:VGroup>
+</s:VGroup>

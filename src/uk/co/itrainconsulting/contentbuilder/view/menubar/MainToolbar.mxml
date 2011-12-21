@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx" 
+	xmlns:menubar="uk.co.itrainconsulting.contentbuilder.view.menubar.*"
+	skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ToolbarSkin" 
+	xmlns:code="http://code.google.com/p/flexlib/"
+	width="100%"
+	creationComplete="onCreationComplete()" 
+	xmlns:layout="com.layout.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.ChangeWatcher;
+			import mx.core.IVisualElement;
+			import mx.events.DragEvent;
+			import mx.events.MoveEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.DragManager;
+			
+			import spark.components.Group;
+			import spark.components.HGroup;
+			import spark.components.List;
+			import spark.components.supportClasses.ItemRenderer;
+			import spark.layouts.RowAlign;
+			import spark.skins.spark.ListSkin;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.events.MainMenuEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.UploadBean;
+			
+			[Inject]
+			[Bindable]
+			public var uploader:UploadBean;
+
+			private function onCreationComplete():void {
+				ChangeWatcher.watch(tileLayout, 'rowCount', onRowCountChange);
+				grToolBars.addEventListener(MainMenuEvent.DRAG_ENTER, onDragEnter);
+				grToolBars.addEventListener(MainMenuEvent.DRAG_COMPLETE, onDragComplete);
+				grToolBars.addEventListener(MainMenuEvent.DRAG_DROP, onDragDrop);
+				onRowCountChange();
+			}
+			
+			private function onRowCountChange(ob:Object = null):void {
+				this.height = tileLayout.rowCount * 30 + 20;
+			}
+			
+			private function onDragEnter(e:MainMenuEvent):void {
+				var holder:HGroup = e.target as HGroup;
+				var point:Point = holder.localToGlobal(new Point(0,0));
+				point.y = 0;
+				point.x -= 10;
+				drawDropIndicator(point, holder.height);
+			}
+			
+			private function onDragComplete(ev:MainMenuEvent):void {
+				removeDropIndicator();
+			}
+			
+			private function drawDropIndicator(p:Point, height:int):void {
+				grToolBars.graphics.clear();
+				grToolBars.graphics.lineStyle(1,0);
+				grToolBars.graphics.drawRect(p.x,p.y,3,height);
+			}
+			
+			private function removeDropIndicator():void {
+				grToolBars.graphics.clear();
+			}
+			
+			private function onDragDrop(ev:MainMenuEvent):void {
+				var dropToolBar : Group = ev.target as Group;
+				var draggedToolBar: Group = ev.draggedData as Group;
+				var draggedIndex:int = toolBars.getItemIndex(draggedToolBar);
+				var dropIndex:int = toolBars.getItemIndex(dropToolBar);
+				toolBars.removeItemAt(draggedIndex);
+				toolBars.addItemAt(draggedToolBar, dropIndex);
+				grToolBars.invalidateDisplayList();
+				removeDropIndicator();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:HorizontalLayout  />
+	</s:layout>
+	
+	<s:DataGroup id="grToolBars" width="100%"
+				 itemRenderer="uk.co.itrainconsulting.contentbuilder.view.menubar.ToolBarItemRenderer">
+		<s:layout>
+			<layout:VariableTileLayout id="tileLayout"/>
+		</s:layout>
+		<s:dataProvider>
+			<s:ArrayCollection id="toolBars">
+				<menubar:PresentationToolBar/>
+				<menubar:SlidesToolBar/>
+				<menubar:MediaToolBar/>
+				<menubar:ViewToolBar/>
+				<menubar:UploadToolBar includeInLayout="{uploader.uploadQueue.length != 0}" visible="{uploader.uploadQueue.length != 0}"/>
+			</s:ArrayCollection>
+		</s:dataProvider>
+	</s:DataGroup>
+	<menubar:ExitToolBar />
+</s:SkinnableContainer>

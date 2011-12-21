@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<swiz:BeanProvider xmlns:fx="http://ns.adobe.com/mxml/2009"
+                   xmlns:s="library://ns.adobe.com/flex/spark"
+                   xmlns:mx="library://ns.adobe.com/flex/halo"
+                   xmlns:swiz="http://swiz.swizframework.org"
+                   xmlns:model="uk.co.itrainconsulting.contentbuilder.model.*"
+                   xmlns:control="uk.co.itrainconsulting.contentbuilder.control.*"
+                   xmlns:viewermodel="uk.co.itrainconsulting.contentviewer.model.*"
+                   xmlns:viewercontrol="uk.co.itrainconsulting.contentviewer.control.*">
+
+    <model:ContentModel id="contentModel"/>
+    <model:NavigationModel id="navigationModel"/>
+    <model:AssetsRepository id="assetsRepository"/>
+    <model:UploadBean id="uploadBean"/>
+    <control:ContentController id="contentController"/>
+    <model:MessageBean id="messageBean"/>
+	<model:UndoRedoBean id="undoRedoBean"/>
+
+</swiz:BeanProvider>

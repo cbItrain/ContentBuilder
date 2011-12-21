@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/halo"
+         width="100%"
+         height="100%"
+         xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+    <fx:Script>
+        <![CDATA[
+            import mx.managers.PopUpManager;
+
+            import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
+
+            private var newVideoMode:Boolean;
+
+            [Bindable]
+            public var padding:Number=10;
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
+
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
+
+            private function applyChanges():void {
+                var vm:VideoMedia=contentModel.selectedResizableObject.model as VideoMedia;
+                vm.autoplay=autoplayCB.selected;
+                vm.loop=loopCB.selected;
+                vm.mute=muteCB.selected;
+            }
+
+            [Mediate(event="EditorEvent.ADD_MEDIA", priority="0")]
+            public function newVideo(ee:EditorEvent):void {
+                if (ee.media == null) {
+                    var type:EnumObjectType=ee.additionalData as EnumObjectType;
+                    if (type.equals(EnumObjectType.VIDEO)) {
+                        changeVideo();
+                    }
+                }
+            }
+
+            private function changeVideo(ev:Event=null):void {
+                newVideoMode=!ev;
+                PopUpManager.addPopUp(videoList, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(videoList);
+                videoList.dispatcher=dispatcher;
+                videoList.refresh();
+            }
+
+            private function closeVideoList():void {
+                PopUpManager.removePopUp(videoList);
+                if (newVideoMode)
+                    dispatchEvent(new EditorEvent(EditorEvent.DELETE_MEDIA, true));
+            }
+
+            private function selectVideoHandler(obj:Object):void {
+                var vm:VideoMedia=contentModel.selectedResizableObject.model as VideoMedia;
+                vm.url=obj.url;
+                vm.displayName=obj.name;
+                //model.selectedVideo.model.url = "http://lccdev.itraineducation.co.uk:37777/lcc/flvdownload/F364103266/therace.flv";
+                PopUpManager.removePopUp(videoList);
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <view:MediaListNew id="videoList"
+                           mediaType="{EnumObjectType.VIDEO}"
+                           closeHandler="closeVideoList"
+                           selectHandler="selectVideoHandler"/>
+    </fx:Declarations>
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <pp:PropertiesTitle title="Video Properties"
+                            icon="@Embed('assets/icons/television.png')"/>
+        <s:VGroup width="100%"
+                  gap="10"
+                  horizontalAlign="left"
+                  paddingBottom="{padding}"
+                  paddingLeft="{padding}"
+                  paddingRight="{padding}"
+                  paddingTop="{padding}">
+
+            <pp:LayoutProperties model="{contentModel.selectedResizableObject.model as VideoMedia}"
+                                 width="100%"/>
+
+            <s:Label text="Source"
+                     fontWeight="bold"/>
+            <!--<s:HGroup width="100%">
+                <s:Label width="60" text="Alpha" />
+                <s:HSlider id="alphaSlider" width="100%" snapInterval="0" maximum="1" minimum="0" stepSize="0.1" value="{model.selectedVideo.model.alpha}" change="applyChanges()" slideDuration="0" liveDragging="true"/>
+            </s:HGroup>-->
+            <s:Label text="Video: {(contentModel.selectedResizableObject.model as VideoMedia).displayName == null ? 'No video selected' : (contentModel.selectedResizableObject.model as VideoMedia).displayName}"/>
+            <s:Button label="Select Video"
+                      click="changeVideo(event)"/>
+            <s:Label text="Playback Options"
+                     fontWeight="bold"/>
+            <s:CheckBox label="Auto-Play"
+                        id="autoplayCB"
+                        selected="{(contentModel.selectedResizableObject.model as VideoMedia).autoplay}"
+                        change="applyChanges()"/>
+            <s:CheckBox label="Loop"
+                        id="loopCB"
+                        selected="{(contentModel.selectedResizableObject.model as VideoMedia).loop}"
+                        change="applyChanges()"/>
+            <s:CheckBox label="Mute"
+                        id="muteCB"
+                        selected="{(contentModel.selectedResizableObject.model as VideoMedia).mute}"
+                        change="applyChanges()"/>
+        </s:VGroup>
+    </s:VGroup>
+</s:Group>

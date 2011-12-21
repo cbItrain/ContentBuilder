@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*"
+				width="100%"
+				height="30"
+				autoDrawBackground="false">
+	<s:layout>
+		<s:VerticalLayout verticalAlign="middle"/>
+	</s:layout>
+	<s:HGroup width="100%"
+			  verticalAlign="middle">
+		<s:Label text="{data.name}"
+				 width="100%"
+				 visible="{!data.isUploading}"
+				 includeInLayout="{!data.isUploading}"/>
+		<mx:ProgressBar indeterminate="true"
+						width="100%"
+						label="{data.name}"
+						fontWeight="normal"
+						visible="{data.isUploading}"
+						includeInLayout="{data.isUploading}"/>
+		<bc:SlideListButton id="btnRemove"
+							icon="@Embed('assets/icons/trash.png')"
+							toolTip="Remove from Upload List"/>
+	</s:HGroup>
+</s:ItemRenderer>

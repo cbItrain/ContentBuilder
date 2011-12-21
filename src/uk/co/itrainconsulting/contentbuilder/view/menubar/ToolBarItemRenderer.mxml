@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true"
+				creationComplete="onCreationComplete()">
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.factory.TruncationOptions;
+			
+			import mx.controls.Image;
+			import mx.core.DragSource;
+			import mx.core.IVisualElement;
+			import mx.events.DragEvent;
+			import mx.managers.DragManager;
+			
+			import spark.components.Group;
+			
+			import uk.co.itrainconsulting.contentbuilder.control.events.MainMenuEvent;
+			
+			override public function set data(value:Object):void {
+				holder.removeAllElements();
+				if (value)
+					holder.addElement(value as IVisualElement);
+			}
+			
+			private function onCreationComplete():void {
+				this.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+			}
+			
+			private function onMouseDown(ev:MouseEvent):void {
+				if (ev.target is Image) {
+					DragManager.doDrag(holder , new DragSource(), ev);
+				}
+			}
+			
+			private function onDragEnter(ev:DragEvent):void {
+				if (ev.dragInitiator is HGroup) {
+					DragManager.acceptDragDrop(holder);
+					holder.dispatchEvent(new MainMenuEvent(MainMenuEvent.DRAG_ENTER, true));
+				}
+			}
+			
+			private function onDragComplete(ev:DragEvent):void {
+				holder.dispatchEvent(new MainMenuEvent(MainMenuEvent.DRAG_COMPLETE, true));
+			}
+			
+			private function onDragDrop(ev:DragEvent):void {
+				var toolBar : EventDispatcher = holder.getElementAt(0) as EventDispatcher;
+				toolBar.dispatchEvent(new MainMenuEvent(MainMenuEvent.DRAG_DROP , true, (ev.dragInitiator as HGroup).getElementAt(0)));
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<s:HGroup id="holder" 
+			  dragEnter="onDragEnter(event)" 
+			  dragComplete="onDragComplete(event)"
+			  dragDrop="onDragDrop(event)"/>
+</s:ItemRenderer>

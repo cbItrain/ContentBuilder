@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  height="25"
+		  verticalAlign="middle"
+		  click="onClick()"
+		  initialize="onInitialize()"
+		  xmlns:bc="uk.co.itrainconsulting.contentbuilder.view.baseComponents.*">
+	<fx:Declarations>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Menu;
+			import mx.core.Application;
+			import mx.core.FlexGlobals;
+			import mx.events.DynamicEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import uk.co.itrainconsulting.contentbuilder.model.UploadBean;
+			import uk.co.itrainconsulting.contentbuilder.utils.StringUtils;
+			import uk.co.itrainconsulting.contentbuilder.view.itemRenderers.UploadQueueItemRenderer;
+
+			private var _uploadQueue:UploadQueue;
+
+			[Bindable]
+			private var _uploader:UploadBean;
+
+			[Bindable]
+			[Embed(source='assets/icons/pauseUpload.png')]
+			private var pauseIcon:Class;
+
+			[Bindable]
+			[Embed(source='assets/icons/goUpload.png')]
+			private var goIcon:Class;
+
+			[Inject]
+			public function uploader(value:UploadBean):void
+			{
+				if (value)
+					_uploader=value;
+			}
+
+			private function onInitialize():void
+			{
+				_uploadQueue=new UploadQueue();
+				_uploadQueue.dataProvider=_uploader.uploadQueue;
+				_uploadQueue.closeHandler=closeUploadQueue;
+				
+				this.parentApplication.addEventListener(ResizeEvent.RESIZE, onApplicationResize);
+			}
+
+			private function onClick():void
+			{
+				if (_uploader.uploadQueue.length && !_uploadQueue.isPopUp)
+				{
+					showQueue();
+				}
+			}
+
+			private function showQueue():void
+			{
+				PopUpManager.addPopUp(_uploadQueue, this);
+				var point:Point=new Point(0, this.height);
+				point=localToGlobal(point);
+				_uploadQueue.x=point.x;
+				_uploadQueue.y=point.y;
+			}
+
+			private function closeUploadQueue():void
+			{
+				PopUpManager.removePopUp(_uploadQueue);
+			}
+
+			private function onApplicationResize(e:ResizeEvent=null):void
+			{
+				if (_uploadQueue.isPopUp)
+				{
+					closeUploadQueue();
+				}
+			}
+		]]>
+	</fx:Script>
+	<mx:Image source="{_uploader.isUploading ? goIcon : pauseIcon}"/>
+	<s:HGroup verticalAlign="middle"
+			  visible="{_uploader.uploadQueue.length != 0}"
+			  includeInLayout="{_uploader.uploadQueue.length != 0}">
+		<s:Label text="{StringUtils.getCountString(_uploader.uploadQueue.length, 'file')}"/>
+		<s:Label text=" - {Math.round(_uploader.sentSize / _uploader.totalSizeToUpload * 100)}% done"/>
+	</s:HGroup>
+	<s:Label text="No file awaits"
+			 visible="{_uploader.uploadQueue.length == 0}"
+			 includeInLayout="{_uploader.uploadQueue.length == 0}"/>
+</s:HGroup>
