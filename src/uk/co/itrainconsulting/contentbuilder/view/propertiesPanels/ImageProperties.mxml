@@ -1,192 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
-		 xmlns:s="library://ns.adobe.com/flex/spark"
-		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="100%"
-		 height="100%"
-		 xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*"
-		 xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
-	<fx:Script>
-		<![CDATA[
-			import mx.binding.utils.BindingUtils;
-			import mx.controls.Image;
-			import mx.events.DragEvent;
-			import mx.events.FlexEvent;
-			import mx.events.PropertyChangeEvent;
-			import mx.managers.PopUpManager;
-			
-			import uk.co.itrainconsulting.common.events.ImageRepositoryEvent;
-			import uk.co.itrainconsulting.common.events.LocalImageLoaderEvent;
-			import uk.co.itrainconsulting.common.model.EnumObjectType;
-			import uk.co.itrainconsulting.common.utils.MediaUploadManager;
-			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
-			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
-			import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
-			import uk.co.itrainconsulting.contentbuilder.model.Constants;
-			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
-			import uk.co.itrainconsulting.common.model.Slide;
-			import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
-			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
-			import uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin;
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%"
+         height="100%"
+         xmlns:pp="uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.*"
+         xmlns:view="uk.co.itrainconsulting.contentbuilder.view.*">
+    <fx:Script>
+        <![CDATA[
+            import mx.binding.utils.BindingUtils;
+            import mx.controls.Image;
+            import mx.events.DragEvent;
+            import mx.events.FlexEvent;
+            import mx.events.PropertyChangeEvent;
+            import mx.managers.PopUpManager;
 
-			public static const IMAGE_DEFAULT_SIZE:Number = 300.0;
-			
-			[Inject]
-			[Bindable]
-			public var contentModel:ContentModel;
+            import uk.co.itrainconsulting.common.events.ImageRepositoryEvent;
+            import uk.co.itrainconsulting.common.events.LocalImageLoaderEvent;
+            import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.common.utils.MediaUploadManager;
+            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+            import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+            import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
+            import uk.co.itrainconsulting.contentbuilder.model.Constants;
+            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+            import uk.co.itrainconsulting.common.model.Slide;
+            import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
+            import uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin;
 
-			[Dispatcher]
-			public var dispatcher:IEventDispatcher;
+            public static const IMAGE_DEFAULT_SIZE:Number=300.0;
 
-			private var newImageMode:Boolean;
+            [Inject]
+            [Bindable]
+            public var contentModel:ContentModel;
 
-			[Bindable]
-			public var padding:Number=10;
+            [Dispatcher]
+            public var dispatcher:IEventDispatcher;
 
-			private function applyChanges():void
-			{
-				var m:ImageMedia=contentModel.selectedResizableObject.model as ImageMedia;
-				m.alpha=alphaSlider.value;
-			}
+            private var newImageMode:Boolean;
 
-			[Mediate(event="EditorEvent.ADD_MEDIA", priority="0")]
-			public function newImage(ee:EditorEvent):void
-			{
-				if (ee.media == null) {
-					var type:EnumObjectType = ee.additionalData as EnumObjectType;
-					if (type.equals(EnumObjectType.IMAGE)) {
-						changeImage();
-					}
-				}
-			}
+            [Bindable]
+            public var padding:Number=10;
 
-			private function revertImage():void
-			{
-				(contentModel.selectedResizableObject.model as ImageMedia).rotation=0;
+            private function applyChanges():void {
+                var m:ImageMedia=contentModel.selectedResizableObject.model as ImageMedia;
+                m.alpha=alphaSlider.value;
+            }
+
+            [Mediate(event="EditorEvent.ADD_MEDIA", priority="0")]
+            public function newImage(ee:EditorEvent):void {
+                if (ee.media == null) {
+                    var type:EnumObjectType=ee.additionalData as EnumObjectType;
+                    if (type.equals(EnumObjectType.IMAGE)) {
+                        changeImage();
+                    }
+                }
+            }
+
+            private function revertImage():void {
+                (contentModel.selectedResizableObject.model as ImageMedia).rotation=0;
+                (contentModel.selectedResizableObject.model as ImageMedia).alpha=1;
 				setOriginalSize();
-				(contentModel.selectedResizableObject.model as ImageMedia).alpha=1;
-				contentModel.selectedResizableObject.model.x=0;
-				contentModel.selectedResizableObject.model.y=0;
-			}
+            }
 
-			private function setOriginalSize():void
-			{
-				if ((contentModel.selectedResizableObject as SimpleResizableImage).content) {
-					contentModel.selectedResizableObject.model.height=(contentModel.selectedResizableObject as SimpleResizableImage).contentHeight;
-					contentModel.selectedResizableObject.model.width=(contentModel.selectedResizableObject as SimpleResizableImage).contentWidth;
-				}
-			}
+            private function setOriginalSize():void {
+                contentModel.selectedResizableObject.model.height=(contentModel.selectedResizableObject as SimpleResizableImage).originalHeight;
+                contentModel.selectedResizableObject.model.width=(contentModel.selectedResizableObject as SimpleResizableImage).originalWidth;
+            }
 
-			private function changeImage(ev:Event=null):void
-			{
-				newImageMode=!ev;
-				PopUpManager.addPopUp(images, DisplayObject(this.parentApplication), true);
-				PopUpManager.centerPopUp(images);
-				images.dispatcher=dispatcher;
-				images.refresh();
-			}
+            private function changeImage(ev:Event=null):void {
+                newImageMode=!ev;
+                PopUpManager.addPopUp(images, DisplayObject(this.parentApplication), true);
+                PopUpManager.centerPopUp(images);
+                images.dispatcher=dispatcher;
+                images.refresh();
+            }
 
-			private function closeImageList():void
-			{
-				PopUpManager.removePopUp(images);
-				if (newImageMode)
-					dispatchEvent(new EditorEvent(EditorEvent.DELETE_MEDIA, true));
-			}
-			[Bindable]
-			private var bgImageUrl:String="";
+            private function closeImageList():void {
+                PopUpManager.removePopUp(images);
+                if (newImageMode)
+                    dispatchEvent(new EditorEvent(EditorEvent.DELETE_MEDIA, true));
+            }
+            [Bindable]
+            private var bgImageUrl:String="";
 
-			private function selectImageHandler(ao:AssetObject):void
-			{
-				if (ao.fileReferenceW) {
-					updateSimpleImage(contentModel.selectedResizableObject as SimpleResizableImage, LocalImageLoaderEvent.IMAGE_LOADED);
-					MediaUploadManager.manageMedia(ao.fileReferenceW, contentModel.selectedResizableObject.model as ImageMedia);
-				} else {
-					updateSimpleImage(contentModel.selectedResizableObject as SimpleResizableImage, ImageRepositoryEvent.IMAGE_UPDATED);
-					(contentModel.selectedResizableObject.model as ImageMedia).url=ao.url;
-				}
-				if (newImageMode)
-					setOriginalSize();
-				//contentModel.selectedImage.model.displayName=ao.name;
-				PopUpManager.removePopUp(images);
-			}
-			
-			private function updateSimpleImage(img:SimpleResizableImage,eventType:String):void {
-				img.removeEventListener(eventType, onImageLoaded);
-				img.addEventListener(eventType, onImageLoaded);
-			}
-			
-			private function onImageLoaded(e:Event):void {
-				var sri:SimpleResizableImage = e.target as SimpleResizableImage;
-				var bm:Bitmap = sri.source as Bitmap;
-				if (bm.width > IMAGE_DEFAULT_SIZE || bm.height > IMAGE_DEFAULT_SIZE) {
-					var ratio:Number = bm.width/bm.height;
-					sri.model.height = IMAGE_DEFAULT_SIZE;
-					sri.model.width = IMAGE_DEFAULT_SIZE*ratio;
-				} else {
-					sri.model.height = bm.height;
-					sri.model.width = bm.width;
-				}
-				sri.removeEventListener(e.type, onImageLoaded);
-			}
-		]]>
-	</fx:Script>
-	<fx:Declarations>
-		<view:MediaListNew id="images"
-						   mediaType="{EnumObjectType.IMAGE}"
-						   closeHandler="closeImageList"
-						   selectHandler="selectImageHandler"/>
-	</fx:Declarations>
-	<s:VGroup width="100%"
-			  height="100%"
-			  gap="0">
-		<pp:PropertiesTitle title="Image Properties"
-							icon="@Embed('assets/icons/picture.png')"/>
-		<s:SkinnableContainer skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin"
-							  width="100%"
-							  height="100%">
-			<s:VGroup width="100%"
-					  gap="10"
-					  horizontalAlign="left"
-					  paddingBottom="{padding}"
-					  paddingLeft="{padding}"
-					  paddingRight="{padding}"
-					  paddingTop="{padding}">
-				<pp:LayoutProperties model="{contentModel.selectedResizableObject.model as ImageMedia}"
-									 width="100%"/>
-				<s:HGroup width="100%">
-					<mx:Spacer width="100%"/>
-					<s:Button label="Reset Image"
-							  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"
-							  click="revertImage()"/>
-				</s:HGroup>
-				<!--s:Label text="Source"
-						 fontWeight="bold"/>
-				<s:Label text="Name: {contentModel.selectedImage.model.displayName}"/-->
-				<s:HGroup width="100%">
-					<s:Label width="60"
-							 text="Alpha"/>
-					<s:HSlider id="alphaSlider"
-							   width="100%"
-							   snapInterval="0"
-							   maximum="1"
-							   minimum="0"
-							   stepSize="0.1"
-							   value="{(contentModel.selectedResizableObject.model as ImageMedia).alpha}"
-							   change="applyChanges()"
-							   slideDuration="0"
-							   liveDragging="true"/>
-				</s:HGroup>
-				<s:HGroup width="100%">
-					<mx:Spacer width="100%"/>
-					<s:Button label="Change Image"
-							  skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"
-							  click="changeImage(event)"/>
-				</s:HGroup>
+            private function selectImageHandler(ao:AssetObject):void {
+                if (ao.fileReferenceW) {
+                    updateSimpleImage(contentModel.selectedResizableObject as SimpleResizableImage, LocalImageLoaderEvent.IMAGE_LOADED);
+                    MediaUploadManager.manageMedia(ao.fileReferenceW, contentModel.selectedResizableObject.model as ImageMedia);
+                } else {
+                    updateSimpleImage(contentModel.selectedResizableObject as SimpleResizableImage, ImageRepositoryEvent.IMAGE_UPDATED);
+                    (contentModel.selectedResizableObject.model as ImageMedia).url=ao.url;
+                }
+                if (newImageMode)
+                    setOriginalSize();
+                //contentModel.selectedImage.model.displayName=ao.name;
+                PopUpManager.removePopUp(images);
+            }
 
-				<pp:NavigationProperties width="100%"
-										 model="{contentModel.selectedResizableObject.model as ImageMedia}"/>
+            private function updateSimpleImage(img:SimpleResizableImage, eventType:String):void {
+                img.removeEventListener(eventType, onImageLoaded);
+                img.addEventListener(eventType, onImageLoaded);
+            }
 
-			</s:VGroup>
-		</s:SkinnableContainer>
-	</s:VGroup>
+            private function onImageLoaded(e:Event):void {
+                var sri:SimpleResizableImage=e.target as SimpleResizableImage;
+                var bm:Bitmap=sri.source as Bitmap;
+                if (bm.width > IMAGE_DEFAULT_SIZE || bm.height > IMAGE_DEFAULT_SIZE) {
+                    var ratio:Number=bm.width / bm.height;
+                    sri.model.height=IMAGE_DEFAULT_SIZE;
+                    sri.model.width=IMAGE_DEFAULT_SIZE * ratio;
+                } else {
+                    sri.model.height=bm.height;
+                    sri.model.width=bm.width;
+                }
+                sri.removeEventListener(e.type, onImageLoaded);
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <view:MediaListNew id="images"
+                           mediaType="{EnumObjectType.IMAGE}"
+                           closeHandler="closeImageList"
+                           selectHandler="selectImageHandler"/>
+    </fx:Declarations>
+    <s:VGroup width="100%"
+              height="100%"
+              gap="0">
+        <pp:PropertiesTitle title="Image Properties"
+                            icon="@Embed('assets/icons/picture.png')"/>
+        <s:SkinnableContainer skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.ScrollableGroupSkin"
+                              width="100%"
+                              height="100%">
+            <s:VGroup width="100%"
+                      gap="10"
+                      horizontalAlign="left"
+                      paddingBottom="{padding}"
+                      paddingLeft="{padding}"
+                      paddingRight="{padding}"
+                      paddingTop="{padding}">
+                <pp:LayoutProperties model="{contentModel.selectedResizableObject.model as ImageMedia}"
+                                     width="100%"/>
+                <s:HGroup width="100%">
+                    <mx:Spacer width="100%"/>
+                    <s:Button label="Reset Image"
+                              skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"
+                              click="revertImage()"/>
+                </s:HGroup>
+                <!--s:Label text="Source"
+                         fontWeight="bold"/>
+                <s:Label text="Name: {contentModel.selectedImage.model.displayName}"/-->
+                <s:HGroup width="100%">
+                    <s:Label width="60"
+                             text="Alpha"/>
+                    <s:HSlider id="alphaSlider"
+                               width="100%"
+                               snapInterval="0"
+                               maximum="1"
+                               minimum="0"
+                               stepSize="0.1"
+                               value="{(contentModel.selectedResizableObject.model as ImageMedia).alpha}"
+                               change="applyChanges()"
+                               slideDuration="0"
+                               liveDragging="true"/>
+                </s:HGroup>
+                <s:HGroup width="100%">
+                    <mx:Spacer width="100%"/>
+                    <s:Button label="Change Image"
+                              skinClass="uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin"
+                              click="changeImage(event)"/>
+                </s:HGroup>
+
+                <pp:NavigationProperties width="100%"
+                                         model="{contentModel.selectedResizableObject.model as ImageMedia}"/>
+
+            </s:VGroup>
+        </s:SkinnableContainer>
+    </s:VGroup>
 </s:Group>

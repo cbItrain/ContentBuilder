@@ -102,8 +102,8 @@
 						default: contentViewModel.preppingCanvas = index;
 					}
 					dispatchEvent(new Event(ContentViewController.PREP_SLIDE, true));
-				} else if (ev.target.hasOwnProperty('urlToGo') && ev.target.urlToGo){
-					var url:String = ev.target.urlToGo as String;
+				} else if (ev.currentTarget.model.hasOwnProperty('urlToGo') && ev.currentTarget.model.urlToGo){
+					var url:String = ev.currentTarget.model.urlToGo as String;
 					if (url.indexOf('http://') < 0)
 						url = 'http://'.concat(url);
 					navigateToURL(new URLRequest(url));

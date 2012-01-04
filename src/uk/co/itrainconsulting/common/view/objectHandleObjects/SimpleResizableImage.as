@@ -6,23 +6,26 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
     import flash.display.PixelSnapping;
     import flash.system.LoaderContext;
     import flash.utils.ByteArray;
-
+    
     import mx.binding.utils.BindingUtils;
     import mx.controls.Image;
     import mx.events.PropertyChangeEvent;
-
+    
     import uk.co.itrainconsulting.common.events.ImageRepositoryEvent;
+    import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+    import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
     import uk.co.itrainconsulting.common.utils.DomainUtils;
     import uk.co.itrainconsulting.common.utils.ImageRepository;
     import uk.co.itrainconsulting.common.utils.LocalImageLoader;
     import uk.co.itrainconsulting.contentbuilder.model.fileupload.FileReferenceWrapper;
-    import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
-    import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
 
 
     public class SimpleResizableImage extends Image implements IModelAware {
 
         private var _model:ImageMedia;
+		
+		private var _oWidth:int = -1;
+		private var _oHeight:int = -1;
 
         private static const _repository:ImageRepository=ImageRepository.getInstance();
         private static const _localLoader:LocalImageLoader=LocalImageLoader.getInstance();
@@ -60,6 +63,26 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
             }
             return dispObj;
         }
+		
+		public function get originalWidth():int {
+			if (_oWidth > -1)
+				return _oWidth;
+			else if (content) {
+				return contentWidth;
+			} else {
+				return width;
+			}
+		}
+		
+		public function get originalHeight():int {
+			if (_oHeight > -1)
+				return _oHeight;
+			else if (content) {
+				return contentHeight;
+			} else {
+				return height;
+			}
+		}
 
         override public function set source(value:Object):void {
             if (value is String) {
@@ -70,7 +93,7 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
                     else {
                         var bd:BitmapData=_repository.imageData(url, true, this);
                         if (bd) {
-                            super.source=new Bitmap(bd, PixelSnapping.AUTO, true);
+                            source=new Bitmap(bd, PixelSnapping.AUTO, true);
                             this.dispatchEvent(new ImageRepositoryEvent(ImageRepositoryEvent.IMAGE_UPDATED));
                         }
                     }
@@ -79,9 +102,13 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
                 }
             } else if (value is ByteArray) {
                 _localLoader.loadLocal(value as ByteArray, this);
-            } else {
+            } else if (value is Bitmap) {
+				_oWidth = (value as Bitmap).width;
+				_oHeight = (value as Bitmap).height;
                 super.source=value;
-            }
+            } else {
+				super.source=value;
+			}
         }
     }
 }
