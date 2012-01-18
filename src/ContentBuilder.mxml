@@ -11,6 +11,7 @@
                width="100%"
                height="100%"
                frameRate="60"
+			   usePreloader="false"
                initialize="onInitialize(event)"
                addedToStage="onAddedToStage()"
                applicationComplete="onCreationComplete(event)"
@@ -94,7 +95,7 @@
 
             protected function onCreationComplete(event:FlexEvent):void {
                 this.setStyle("modalTransparencyColor", 0x000000);
-                contentModel.wrapperDispatcher.dispatchEvent("creation_complete");
+                contentModel.wrapperDispatcher.dispatchEvent("CREATION_COMPLETE");
 
                 this.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownBubble);
                 this.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCapture, true);

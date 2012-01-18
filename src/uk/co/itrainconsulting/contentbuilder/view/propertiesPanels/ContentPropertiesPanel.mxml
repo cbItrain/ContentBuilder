@@ -13,6 +13,7 @@
         <![CDATA[
 			import mx.managers.PopUpManager;
 			
+			import uk.co.itrainconsulting.common.model.ContentProperties;
 			import uk.co.itrainconsulting.common.model.EnumObjectType;
 			import uk.co.itrainconsulting.common.model.Slide;
 			import uk.co.itrainconsulting.common.utils.MediaUploadManager;
@@ -80,6 +81,9 @@
             }
 
             private function applyChanges():void {
+				
+				//var originalProperties:ContentProperties = contentModel.contentProps.getDeepCopy();
+				
                 contentModel.contentProps.title=titleInput.value;
                 contentModel.contentProps.bgColor=cp.selectedColor;
                 contentModel.contentProps.width=widthInput.value;
@@ -97,7 +101,7 @@
                         contentModel.contentProps.bgImageMethod=EnumImageBGType.SCALE;
                     contentModel.contentProps.hasBGImage=true;
                 } else {
-                    contentModel.contentProps.bgImage="";
+                    contentModel.contentProps.bgImage=null;
                     contentModel.contentProps.bgImageMethod=null;
                     contentModel.contentProps.hasBGImage=false;
                 }
@@ -113,7 +117,12 @@
                         break;
                 }
                 PopUpManager.removePopUp(this);
-				dispatcher.dispatchEvent(new EditorEvent(EditorEvent.CONTENT_PROPERTIES_CHANGE, true));
+				
+				//if (!contentModel.contentProps.equals(originalProperties)) {
+				var ee:EditorEvent = new EditorEvent(EditorEvent.CONTENT_PROPERTIES_CHANGE, true);
+					//ee.additionalData = originalProperties;
+				dispatcher.dispatchEvent(ee);
+				//}
             }
         ]]>
     </fx:Script>

@@ -1,12 +1,17 @@
 package uk.co.itrainconsulting.contentbuilder.model
 {
+	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
+	import flash.external.ExternalInterface;
 	import flash.media.Video;
 	
 	import mx.collections.ArrayCollection;
+	import mx.controls.Alert;
+	import mx.core.FlexGlobals;
 	import mx.core.mx_internal;
+	import mx.events.CloseEvent;
 	import mx.events.DynamicEvent;
 	
 	import spark.components.Button;
@@ -38,7 +43,6 @@ package uk.co.itrainconsulting.contentbuilder.model
 	[Bindable]
 	public class ContentModel
 	{
-		public var closeBuilderFunction:String;
 		public var isDebug:Boolean = false;
 		public var isSaving:Boolean = false;
 		public var debugUrl:String;
@@ -63,9 +67,14 @@ package uk.co.itrainconsulting.contentbuilder.model
 		private var _apiVersion:String = APIVersions.defaultVersion;
 		private var _selectedType:EnumObjectType;
 		private var _selectedSlide:Slide;
+		private var _leaveAfterSave:Boolean = false;
+		private var _closeHandler:String;
 		
 		[Dispatcher]
 		public var dispatcher:IEventDispatcher;
+		
+		[Inject]
+		public var undoRedoBean:UndoRedoBean;
 		
 		public function ContentModel()
 		{
@@ -126,10 +135,13 @@ package uk.co.itrainconsulting.contentbuilder.model
 				this.lessonId = o.lessonId;
 				this.isDebug = o.debug.on;
 				this.debugUrl = o.debug.url;			
-				this.closeBuilderFunction = o.closeFunction;
 				this.apiVersion = o.serviceSettings.apiVersion;			
 				this.wrapperDispatcher = o.wrapperDispatcher;
 				this.playerModulePath = o.playerModuleURL;
+				
+				_closeHandler = o.closeFunction;
+				if (o.beforeUnloadFunction)
+					ExternalInterface.addCallback(o.beforeUnloadFunction, unload);
 			}
 			catch(e:Error){}		
 		}
@@ -293,8 +305,11 @@ package uk.co.itrainconsulting.contentbuilder.model
 			isSaving = false;
 			if (e.type == ServiceEvent.CONTENT_SAVED) {
 				wrapperDispatcher.dispatchEvent("save_success");
+				if (_leaveAfterSave)
+					externalClose(false);
 			} else if (e.type == ServiceEvent.CONTENT_SAVE_FAILED) {
 				wrapperDispatcher.dispatchEvent("read_content_fault");
+				_leaveAfterSave = false;
 			}
 		}
 		
@@ -302,7 +317,6 @@ package uk.co.itrainconsulting.contentbuilder.model
 			var newMediaEvent:Event=new Event(ContentController.SAVE_CONTENT, true);
 			isSaving = true;
 			dispatcher.dispatchEvent(newMediaEvent);
-			wrapperDispatcher.dispatchEvent("save");
 		}
 		
 		private function sendEditorEvent(type:String, mo:MediaObject, slide:Slide, silently:Boolean):void {
@@ -311,6 +325,36 @@ package uk.co.itrainconsulting.contentbuilder.model
 			cee.media = mo;
 			cee.silent = silently;
 			dispatcher.dispatchEvent(cee);
+		}
+		
+		public function unload():Boolean {
+			if (undoRedoBean.saveRequired || undoRedoBean.propertiesChanged) {
+				close();
+				return false;
+			} else {
+				return true;
+			}
+		}
+		
+		public function close():void {
+			if (undoRedoBean.saveRequired || undoRedoBean.propertiesChanged) {
+				Alert.show("You have unsaved changes.\nWould you like to save them before leaving the application?", "Closing application", Alert.YES | Alert.NO | Alert.CANCEL, FlexGlobals.topLevelApplication as Sprite, function(e:CloseEvent):void {
+					if (e.detail == Alert.YES) {
+						_leaveAfterSave=true;
+						saveContent();
+					} else if (e.detail == Alert.NO) {
+						externalClose(false);
+					}
+				});
+			} else {
+				externalClose(false);
+			}
+		}
+		
+		private function externalClose(checkSaveStatus:Boolean = true):void {
+			if (ExternalInterface.available && _closeHandler) {
+				ExternalInterface.call(_closeHandler, checkSaveStatus);
+			}
 		}
 	}
 }

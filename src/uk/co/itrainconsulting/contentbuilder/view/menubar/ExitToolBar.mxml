@@ -17,12 +17,7 @@
 			[Inject] [Bindable]public var contentModel:ContentModel;
 			
 			private function exitContent():void{
-				var javascriptFunction:String = contentModel.closeBuilderFunction;
-				if(ExternalInterface.available && javascriptFunction)
-				{
-					ExternalInterface.call(javascriptFunction);
-				}
-				contentModel.wrapperDispatcher.dispatchEvent("exit");
+				contentModel.close();
 			}
 			
 		]]>

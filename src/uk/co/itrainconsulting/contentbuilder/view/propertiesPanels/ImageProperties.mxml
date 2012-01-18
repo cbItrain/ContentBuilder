@@ -14,22 +14,23 @@
             import mx.events.FlexEvent;
             import mx.events.PropertyChangeEvent;
             import mx.managers.PopUpManager;
-
+            
             import uk.co.itrainconsulting.common.events.ImageRepositoryEvent;
             import uk.co.itrainconsulting.common.events.LocalImageLoaderEvent;
             import uk.co.itrainconsulting.common.model.EnumObjectType;
+            import uk.co.itrainconsulting.common.model.Slide;
+            import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
             import uk.co.itrainconsulting.common.utils.MediaUploadManager;
+            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
             import uk.co.itrainconsulting.contentbuilder.control.ContentController;
             import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
             import uk.co.itrainconsulting.contentbuilder.model.AssetObject;
             import uk.co.itrainconsulting.contentbuilder.model.Constants;
             import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
-            import uk.co.itrainconsulting.common.model.Slide;
-            import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
             import uk.co.itrainconsulting.contentbuilder.view.skins.SimpleButtonSkin;
 
-            public static const IMAGE_DEFAULT_SIZE:Number=300.0;
+            private static const IMAGE_DEFAULT_SIZE:Number=500.0;
+			private static const MAX_IMAGE_CORRECTION:Number = 50.0;
 
             [Inject]
             [Bindable]
@@ -59,14 +60,21 @@
             }
 
             private function revertImage():void {
-                (contentModel.selectedResizableObject.model as ImageMedia).rotation=0;
-                (contentModel.selectedResizableObject.model as ImageMedia).alpha=1;
-				setOriginalSize();
+				var sri:SimpleResizableImage = contentModel.selectedResizableObject as SimpleResizableImage;
+				var im:ImageMedia = sri.model as ImageMedia;
+				im.rotation=0;
+				im.alpha=1;
+				setOriginalLimitedSize(sri.originalWidth, sri.originalHeight, im);
             }
 
-            private function setOriginalSize():void {
-                contentModel.selectedResizableObject.model.height=(contentModel.selectedResizableObject as SimpleResizableImage).originalHeight;
-                contentModel.selectedResizableObject.model.width=(contentModel.selectedResizableObject as SimpleResizableImage).originalWidth;
+            private function setOriginalLimitedSize(width:Number, height:Number, im:ImageMedia):void {
+				if (width > contentModel.selectedSlide.width || height > contentModel.selectedSlide.height) {
+					var scaleX:Number = contentModel.selectedSlide.width/width;
+					var scaleY:Number = contentModel.selectedSlide.height/height;
+					var scale:Number = Math.min(scaleX, scaleY);
+					im.width = scale * width;
+					im.height = scale * height;
+				}
             }
 
             private function changeImage(ev:Event=null):void {
@@ -93,8 +101,8 @@
                     updateSimpleImage(contentModel.selectedResizableObject as SimpleResizableImage, ImageRepositoryEvent.IMAGE_UPDATED);
                     (contentModel.selectedResizableObject.model as ImageMedia).url=ao.url;
                 }
-                if (newImageMode)
-                    setOriginalSize();
+//                if (newImageMode)
+//                    setOriginalSize();
                 //contentModel.selectedImage.model.displayName=ao.name;
                 PopUpManager.removePopUp(images);
             }
@@ -107,14 +115,7 @@
             private function onImageLoaded(e:Event):void {
                 var sri:SimpleResizableImage=e.target as SimpleResizableImage;
                 var bm:Bitmap=sri.source as Bitmap;
-                if (bm.width > IMAGE_DEFAULT_SIZE || bm.height > IMAGE_DEFAULT_SIZE) {
-                    var ratio:Number=bm.width / bm.height;
-                    sri.model.height=IMAGE_DEFAULT_SIZE;
-                    sri.model.width=IMAGE_DEFAULT_SIZE * ratio;
-                } else {
-                    sri.model.height=bm.height;
-                    sri.model.width=bm.width;
-                }
+				setOriginalLimitedSize(bm.width, bm.height, sri.model as ImageMedia);
                 sri.removeEventListener(e.type, onImageLoaded);
             }
         ]]>

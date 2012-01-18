@@ -10,7 +10,7 @@
 			
 			[Bindable] public var label:String = "Label";
 			[Bindable] public var textAlign:String = "left";
-			[Bindable] public var max:Number = 1200;
+			[Bindable] public var max:Number = 3000;
 			[Bindable] public var min:Number = 0;
 			
 			private var _labelWidth:Number = 0;

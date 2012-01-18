@@ -34,7 +34,7 @@ in accordance with the terms of the license agreement accompanying it.
 	<fx:Script>
 				<![CDATA[
 					
-			import uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.ContentProperties;
+			import uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.ContentPropertiesPanel;
 /* Define the skin elements that should not be colorized. 
 		For panel, border and title backround are skinned, but the content area and title text are not. */
 		static private const exclusions:Array = ["background", "titleDisplay", "contentGroup"];
@@ -76,7 +76,7 @@ in accordance with the terms of the license agreement accompanying it.
 		{
 			topGroup.addEventListener(MouseEvent.MOUSE_DOWN,handleDown);
 			topGroup.addEventListener(MouseEvent.MOUSE_UP,handleUp);
-			if (this.hostComponent is ContentProperties)
+			if (this.hostComponent is ContentPropertiesPanel)
 			{
 				gearIcon.visible = gearIcon.includeInLayout = true;
 			}

@@ -19,7 +19,7 @@
 			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
 			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
 			import uk.co.itrainconsulting.contentbuilder.model.UndoRedoBean;
-			import uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.ContentProperties;
+			import uk.co.itrainconsulting.contentbuilder.view.propertiesPanels.ContentPropertiesPanel;
 
             [Inject]
             [Bindable]
@@ -41,7 +41,7 @@
             }
 
             private function contentClick():void {
-                var props:ContentProperties=new ContentProperties();
+                var props:ContentPropertiesPanel=new ContentPropertiesPanel();
                 PopUpManager.addPopUp(props, DisplayObject(this.parentApplication), true);
                 PopUpManager.centerPopUp(props);
                 props.dispatcher=dispatcher;
@@ -62,7 +62,7 @@
 
     <baseComponents:IconButton id="btnSave"
                                click="saveContent()"
-							   enabled="{!contentModel.isSaving &amp;&amp; undoRedoBean.saveRequired}"
+							   enabled="{!contentModel.isSaving &amp;&amp; (undoRedoBean.saveRequired || undoRedoBean.propertiesChanged)}"
                                icon="{Embeded.SAVE_ICON}"
                                label="Save"/>
 

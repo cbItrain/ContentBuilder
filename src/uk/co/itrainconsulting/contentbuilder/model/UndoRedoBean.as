@@ -6,9 +6,9 @@ package uk.co.itrainconsulting.contentbuilder.model {
     import flash.utils.Dictionary;
     import flash.utils.Timer;
     import flash.utils.setTimeout;
-
+    
     import flashx.textLayout.events.ModelChange;
-
+    
     import mx.core.FlexGlobals;
     import mx.events.CollectionEvent;
     import mx.events.CollectionEventKind;
@@ -16,7 +16,7 @@ package uk.co.itrainconsulting.contentbuilder.model {
     import mx.managers.DragManager;
     import mx.utils.ObjectUtil;
     import mx.utils.UIDUtil;
-
+    
     import uk.co.itrainconsulting.common.model.Slide;
     import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
     import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
@@ -41,6 +41,8 @@ package uk.co.itrainconsulting.contentbuilder.model {
         public var redoEnabled:Boolean=false;
         [Bindable]
         public var undoEnabled:Boolean=false;
+		[Bindable]
+		public var propertiesChanged:Boolean=false;
         [Bindable]
         public var saveRequired:Boolean=false;
 
@@ -194,6 +196,11 @@ package uk.co.itrainconsulting.contentbuilder.model {
                 updateSaveRequired();
             }
         }
+		
+		[Mediate(event="EditorEvent.CONTENT_PROPERTIES_CHANGE")]
+		public function onConentPropertiesChanged():void {
+			propertiesChanged = true;
+		}
 
         [Mediate(event="EditorEvent.MEDIA_REORDERED")]
         public function onMediaReordered(e:EditorEvent):void {
@@ -257,18 +264,17 @@ package uk.co.itrainconsulting.contentbuilder.model {
 
         private function restoreValue(mci:ModelChangeItem, propetyName:String):void {
             mci.reference.unlistenForChange();
-            var sovo:MediaObject;
             if (mci.type == ModelChangeItem.POSITION_CHANGE) {
                 var position:Position=mci[propetyName] as Position;
-                sovo=mci.reference as MediaObject;
+				var sovo:MediaObject = mci.reference as MediaObject;
                 sovo.x=position.x;
                 sovo.y=position.y;
                 sovo.rotation=position.rotation;
             } else if (mci.type == ModelChangeItem.DIMENSION_CHANGE) {
                 var dimension:Dimension=mci[propetyName] as Dimension;
-                sovo=mci.reference as MediaObject;
-                sovo.width=dimension.width;
-                sovo.height=dimension.height;
+                var o:Object = mci.reference;
+                o.width=dimension.width;
+                o.height=dimension.height;
             } else if (mci.type == ModelChangeItem.PROPERTY_CHANGE) {
                 mci.reference[mci.propertyName]=mci[propetyName];
             }
@@ -397,16 +403,15 @@ package uk.co.itrainconsulting.contentbuilder.model {
         }
 
         private function setMCIOldValue(mci:ModelChangeItem, e:PropertyChangeEvent):void {
-            var sovo:MediaObject;
             if (mci.type == ModelChangeItem.POSITION_CHANGE) {
-                sovo=e.target as MediaObject;
+				var sovo:MediaObject = e.target as MediaObject;
                 mci.oldValue=new Position(sovo.x, sovo.y, sovo.rotation);
                 mci.oldValue[e.property]=e.oldValue;
                 mci.newValue=(mci.oldValue as Position).clone();
                 mci.newValue[e.property]=e.newValue;
             } else if (mci.type == ModelChangeItem.DIMENSION_CHANGE) {
-                sovo=e.target as MediaObject;
-                mci.oldValue=new Dimension(sovo.width, sovo.height);
+                var o:Object =e.target;
+                mci.oldValue=new Dimension(o.width, o.height);
                 mci.oldValue[e.property]=e.oldValue;
                 mci.newValue=(mci.oldValue as Dimension).clone();
                 mci.newValue[e.property]=e.newValue;
@@ -453,6 +458,7 @@ package uk.co.itrainconsulting.contentbuilder.model {
         public function onLessonSaved():void {
             _lastSaveIndex=_currentIndex;
             saveRequired=false;
+			propertiesChanged=false;
         }
 
         private function updateCache():void {

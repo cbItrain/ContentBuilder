@@ -129,7 +129,7 @@ flexlib|DockableToolBar
 s|Label, s|TextInput{
 	fontFamily: CFFMyriad;	
 }
-mx|TextArea,  s|TextInput, mx|Menu, mx|Alert {
+mx|TextArea,  s|TextInput, mx|Menu, mx|Alert, mx|TextInput, mx|ColorPicker {
 	fontFamily: Arial, Helvetica, sans-serif;
 }
 global

@@ -3,15 +3,15 @@ package uk.co.itrainconsulting.common.model
 	[RemoteClass]
 	public class EnumObjectType extends EnumClass
 	{
-		public static var NONE:EnumObjectType = new EnumObjectType(0);
-		public static var IMAGE:EnumObjectType = new EnumObjectType(1);
-		public static var TEXT:EnumObjectType = new EnumObjectType(2);
-		public static var SHAPE:EnumObjectType = new EnumObjectType(3);
-		public static var AUDIO:EnumObjectType = new EnumObjectType(4);
-		public static var VIDEO:EnumObjectType = new EnumObjectType(5);
-		public static var BUTTON:EnumObjectType = new EnumObjectType(6);
-		public static var SLIDE:EnumObjectType = new EnumObjectType(7);
-		public static var TEMPLATE:EnumObjectType = new EnumObjectType(8);
+		public static const NONE:EnumObjectType = new EnumObjectType(0);
+		public static const IMAGE:EnumObjectType = new EnumObjectType(1);
+		public static const TEXT:EnumObjectType = new EnumObjectType(2);
+		public static const SHAPE:EnumObjectType = new EnumObjectType(3);
+		public static const AUDIO:EnumObjectType = new EnumObjectType(4);
+		public static const VIDEO:EnumObjectType = new EnumObjectType(5);
+		public static const BUTTON:EnumObjectType = new EnumObjectType(6);
+		public static const SLIDE:EnumObjectType = new EnumObjectType(7);
+		public static const TEMPLATE:EnumObjectType = new EnumObjectType(8);
 		
 		public function EnumObjectType(ordinal:int = 0)
 		{

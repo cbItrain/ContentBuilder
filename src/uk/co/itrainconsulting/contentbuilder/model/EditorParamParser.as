@@ -14,6 +14,7 @@ package uk.co.itrainconsulting.contentbuilder.model
 		override public function parseFlashVars() : Object
 		{
 			var o:Object = super.parseFlashVars();
+			o.beforeUnloadFunction = context.parameters.beforeUnloadFunction;
 			o.serviceSettings.update = {};
 			o.serviceSettings.update.url = context.parameters.saveContent;
 			o.serviceSettings.searchAssests = {};
