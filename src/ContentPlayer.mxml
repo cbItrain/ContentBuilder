@@ -35,6 +35,9 @@
 				
 				previewerContent.removeEventListener(StateEvent.STATE_EVENT_XML_PARSED, onXMLParsed);
 				previewerContent.addEventListener(StateEvent.STATE_EVENT_XML_PARSED, onXMLParsed);
+				
+				if (_flashVars.fontsURL)
+					styleManager.loadStyleDeclarations(_flashVars.fontsURL);
 			}
 			
 			private function onXMLParsed(e:Event):void {

@@ -70,6 +70,7 @@ package uk.co.itrainconsulting.contentbuilder.model {
         [Mediate(event="EditorEvent.UNDO")]
         public function undoAction():void {
             if (undoEnabled) {
+				var ee:EditorEvent;
                 var mci:ModelChangeItem=_actions[_currentIndex++];
                 if (mci.type == ModelChangeItem.ITEM_ADDED) { //slide object actions
                     _lastEvent=new EditorEvent(EditorEvent.DELETE_MEDIA, true);
@@ -82,7 +83,7 @@ package uk.co.itrainconsulting.contentbuilder.model {
                     (_lastEvent as EditorEvent).slide=mci.parent as Slide;
                     dispatcher.dispatchEvent(_lastEvent);
                 } else if (mci.type == ModelChangeItem.ITEM_REORDERED) {
-                    var ee:EditorEvent=new EditorEvent(EditorEvent.REORDER_MEDIA, true);
+                    ee=new EditorEvent(EditorEvent.REORDER_MEDIA, true);
                     ee.media=mci.reference as MediaObject;
                     ee.slide=mci.parent as Slide;
                     ee.additionalData=mci.oldValue;
@@ -94,7 +95,6 @@ package uk.co.itrainconsulting.contentbuilder.model {
                     if (mci.type == ModelChangeItem.SLIDE_SELECTION_CHANGE) {
                         //_lastEvent=e=buildSeletionChangeEvent(mci.oldValue as int);
                     } else {
-                        var ee:EditorEvent;
                         if (mci.type == ModelChangeItem.SLIDE_REORDERED) {
                             ee=new EditorEvent(EditorEvent.REORDER_SLIDE_SILENTLY, true);
                             ee.slide=mci.reference as Slide;
@@ -151,6 +151,7 @@ package uk.co.itrainconsulting.contentbuilder.model {
         public function redoAction():void {
             if (redoEnabled) {
                 var mci:ModelChangeItem=_actions[--_currentIndex];
+				var ee:EditorEvent;
                 if (mci.type == ModelChangeItem.ITEM_ADDED) {
                     _lastEvent=new EditorEvent(EditorEvent.ADD_MEDIA, true);
                     (_lastEvent as EditorEvent).media=mci.reference as MediaObject;
@@ -162,7 +163,7 @@ package uk.co.itrainconsulting.contentbuilder.model {
                     (_lastEvent as EditorEvent).slide=mci.parent as Slide;
                     dispatcher.dispatchEvent(_lastEvent);
                 } else if (mci.type == ModelChangeItem.ITEM_REORDERED) {
-                    var ee:EditorEvent=new EditorEvent(EditorEvent.REORDER_MEDIA, true);
+                    ee=new EditorEvent(EditorEvent.REORDER_MEDIA, true);
                     ee.media=mci.reference as MediaObject;
                     ee.slide=mci.parent as Slide;
                     ee.additionalData=mci.newValue;
@@ -174,7 +175,6 @@ package uk.co.itrainconsulting.contentbuilder.model {
                     if (mci.type == ModelChangeItem.SLIDE_SELECTION_CHANGE) {
                         //_lastEvent=e=buildSeletionChangeEvent(mci.newValue as int);
                     } else {
-                        var ee:EditorEvent;
                         if (mci.type == ModelChangeItem.SLIDE_REORDERED) {
                             ee=new EditorEvent(EditorEvent.REORDER_SLIDE_SILENTLY, true);
                             ee.slide=mci.reference as Slide;

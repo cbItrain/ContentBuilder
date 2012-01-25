@@ -26,7 +26,7 @@
 	</s:states>
 	<s:Rect radiusX="0" radiusY="0" height="100%" width="100%" includeIn="up" >
 		<s:stroke>
-			<s:Stroke color="#B4B4B4" alpha="1"/>
+			<s:SolidColorStroke color="#B4B4B4" alpha="1"/>
 		</s:stroke> 
 		<s:fill> 
 			<s:LinearGradient rotation="90"> 
@@ -39,7 +39,7 @@
 	</s:Rect>
 	<s:Rect radiusX="0" radiusY="0" height="100%" width="100%" includeIn="over" >
 		<s:stroke>
-			<s:Stroke color="#B4B4B4" alpha="1"/>
+			<s:SolidColorStroke color="#B4B4B4" alpha="1"/>
 		</s:stroke> 
 		<s:fill> 
 			<s:LinearGradient rotation="90"> 
@@ -52,7 +52,7 @@
 	</s:Rect>
 	<s:Rect radiusX="0" radiusY="0" height="100%" width="100%" includeIn="down" >
 		<s:stroke>
-			<s:Stroke color="#B4B4B4" alpha="1"/>
+			<s:SolidColorStroke color="#B4B4B4" alpha="1"/>
 		</s:stroke> 
 		<s:fill> 
 			<s:LinearGradient rotation="90"> 
@@ -66,7 +66,7 @@
 	</s:Rect>
 	<s:Rect radiusX="0" radiusY="0" height="100%" width="100%" includeIn="disabled">
 		<s:stroke>
-			<s:Stroke color="#B4B4B4" alpha="1"/>
+			<s:SolidColorStroke color="#B4B4B4" alpha="1"/>
 		</s:stroke> 
 		<s:fill> 
 			<s:LinearGradient rotation="90"> 

@@ -91,6 +91,9 @@
                 getAttachments.url=flashVars.getAttachmentsURL;
 
                 contentModel.wrapperDispatcher.dispatchEvent("preinitialize");
+				
+				if (flashVars.fontsURL)
+					styleManager.loadStyleDeclarations(flashVars.fontsURL);
             }
 
             protected function onCreationComplete(event:FlexEvent):void {

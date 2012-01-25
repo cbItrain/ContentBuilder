@@ -3,9 +3,9 @@ package uk.co.itrainconsulting.common.model
 	[RemoteClass]
 	public class EnumShapeType extends EnumClass
 	{
-		public static var LINE:EnumShapeType = new EnumShapeType(0);
-		public static var CIRCLE:EnumShapeType = new EnumShapeType(1);
-		public static var RECTANGLE:EnumShapeType = new EnumShapeType(2);
+		public static const LINE:EnumShapeType = new EnumShapeType(0);
+		public static const CIRCLE:EnumShapeType = new EnumShapeType(1);
+		public static const RECTANGLE:EnumShapeType = new EnumShapeType(2);
 		
 		public function EnumShapeType(ordinal:int = 0)
 		{

@@ -10,7 +10,7 @@
       </libraryPathEntry>
       <libraryPathEntry kind="1" linkType="1" path="libs"/>
       <libraryPathEntry kind="3" linkType="1" path="/ObjectHandles/bin/ObjectHandles.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="/InPlaceTextEditor/bin/InPlaceTextEditor.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry autoExtract="true" kind="3" linkType="3" path="/InPlaceTextEditor/bin/InPlaceTextEditor.swc" rslUrl="InPlaceTextEditor.swf" useDefaultLinkType="true"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
@@ -21,5 +21,7 @@
   <modules>
     <module application="src/ContentBuilder.mxml" destPath="PlayerModule.swf" optimize="false" sourcePath="src/PlayerModule.mxml"/>
   </modules>
-  <buildCSSFiles/>
+  <buildCSSFiles>
+    <buildCSSFileEntry destPath="bin-debug" sourcePath="src/fonts.css"/>
+  </buildCSSFiles>
 </actionScriptProperties>

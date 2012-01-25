@@ -5,9 +5,9 @@ package uk.co.itrainconsulting.contentbuilder.model
 	[RemoteClass]
 	public class EnumBGType extends EnumClass
 	{
-		public static var DEFAULT:EnumBGType = new EnumBGType(0);
-		public static var IMAGE:EnumBGType = new EnumBGType(1);
-		public static var GRADIENT:EnumBGType = new EnumBGType(2);
+		public static const DEFAULT:EnumBGType = new EnumBGType(0);
+		public static const IMAGE:EnumBGType = new EnumBGType(1);
+		public static const GRADIENT:EnumBGType = new EnumBGType(2);
 		
 		public function EnumBGType(ordinal:int = 0)
 		{

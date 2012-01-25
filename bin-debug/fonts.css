@@ -1,0 +1,92 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+
+@font-face {
+	src:url("assets/fonts/MyriadPro-Regular.otf");
+	fontFamily: CFFMyriad;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-Bold.otf");
+	fontFamily: CFFMyriad;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src:url("assets/fonts/MyriadPro-It.otf");
+	fontFamily: CFFMyriad;
+	fontStyle: italic;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src:url("assets/fonts/MyriadPro-BoldIt.otf");
+	fontFamily: CFFMyriad;
+	fontStyle: italic;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-Regular.otf");
+	fontFamily: NoCFFMyriad;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-Bold.otf");
+	fontFamily: NoCFFMyriad;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-It.otf");
+	fontFamily: NoCFFMyriad;
+	fontStyle: italic;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/MyriadPro-BoldIt.otf");
+	fontFamily: NoCFFMyriad;
+	fontStyle: italic;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+
+@font-face {
+	src:url("assets/fonts/ACaslonPro-Regular.otf");
+	fontFamily: ACaslonPro;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/ACaslonPro-Bold.otf");
+	fontFamily: ACaslonPro;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/ACaslonPro-Italic.otf");
+	fontFamily: ACaslonPro;
+	fontStyle: italic;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}
+@font-face {
+	src:url("assets/fonts/ACaslonPro-BoldItalic.otf");
+	fontFamily: ACaslonPro;
+	fontStyle: italic;
+	fontWeight: bold;
+	advancedAntiAliasing: false;
+	embedAsCFF: true;
+}

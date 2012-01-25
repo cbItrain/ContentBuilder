@@ -29,6 +29,7 @@ package uk.co.itrainconsulting.content.common.model
 			o.getTemplateURL = context.parameters.getTemplateURL;
 			o.uploadAttachmentURL = context.parameters.uploadAttachmentURL;
 			o.uploadAssetsURL = context.parameters.uploadAssetsURL;
+			o.fontsURL = context.parameters.fontsURL;
 			
 			o.debug = {};
 			o.serviceSettings = {};

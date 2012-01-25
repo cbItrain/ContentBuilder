@@ -146,7 +146,6 @@ package uk.co.itrainconsulting.contentbuilder.model
 			catch(e:Error){}		
 		}
 		
-		[Bindable]
 		public function get selectedType():EnumObjectType
 		{
 			return _selectedType;
