@@ -19,6 +19,8 @@ package uk.co.itrainconsulting.contentbuilder.model
 			o.serviceSettings.update.url = context.parameters.saveContent;
 			o.serviceSettings.searchAssests = {};
 			o.serviceSettings.searchAssests.url = context.parameters.getList;
+			o.font = context.parameters.font;
+			o.fontSize = context.parameters.fontSize;
 			
 			o.pageId = context.parameters.pageId;
 			return o;

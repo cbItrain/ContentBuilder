@@ -57,7 +57,7 @@
             <s:stroke>
                 <s:SolidColorStroke joints="miter"
                                     color="{_model.lineColour}"
-                                    alpha="{_model.lineAlpha}"
+                                    alpha="{_model.lineWeight != 0 ? _model.lineAlpha : 0}"
                                     weight="{_model.lineWeight}"/>
             </s:stroke>
         </s:Rect>
@@ -116,7 +116,7 @@
             <s:stroke>
                 <s:SolidColorStroke joints="miter"
                                     color="{_model.lineColour}"
-                                    alpha="{_model.lineAlpha}"
+                                    alpha="{_model.lineWeight != 0 ? _model.lineAlpha : 0}"
                                     weight="{_model.lineWeight}"/>
             </s:stroke>
         </s:Ellipse>
@@ -182,7 +182,7 @@
                 <s:stroke>
                     <s:SolidColorStroke caps="square"
                                         color="{_model.lineColour}"
-                                        alpha="{_model.lineAlpha}"
+                                        alpha="{_model.lineWeight != 0 ? _model.lineAlpha : 0}"
                                         weight="{_model.lineWeight}"/>
                 </s:stroke>
             </s:Line>

@@ -27,6 +27,7 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
     import spark.components.Group;
     import spark.components.VGroup;
     
+    import uk.co.itrainconsulting.common.CommonDefaults;
     import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
     import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
     import uk.co.itrainconsulting.common.utils.Common;
@@ -43,13 +44,15 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
 		private var _model:TextMedia;
 		
         private var _modelTextW:ChangeWatcher;
+		private var _editable:Boolean;
 
         [Embed('assets/icons/advTextIcon.svg')]
         private var advTextIcon:Class;
 
-        public function SimpleResizableText(model:TextMedia) {
+        public function SimpleResizableText(model:TextMedia, editable:Boolean = true) {
             super();
             _model=model;
+			_editable = editable;
 			if (_model)
             	applyBindingsToTheModel();
             this.addEventListener(MouseEvent.CLICK, onMouseClick);
@@ -79,16 +82,20 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
                 _textEditorContainer.percentWidth=100;
                 _textEditorContainer.percentHeight=100;
                 _textEditorContainer.clipAndEnableScrolling=true;
+				if (_editable) {
+					_textEditorContainer.paddingBottom = CommonDefaults.TEXT_OBJECT_PADDING;
+					_textEditorContainer.paddingLeft = CommonDefaults.TEXT_OBJECT_PADDING;
+					_textEditorContainer.paddingRight = CommonDefaults.TEXT_OBJECT_PADDING;
+					_textEditorContainer.paddingTop = CommonDefaults.TEXT_OBJECT_PADDING;
+				}
                 this.addElement(_textEditorContainer);
             }
             if (!_textEditor) {
                 _textEditor=new InPlaceTextEditor(true, this);
-
                 _textEditor.percentWidth=100;
                 _textEditor.percentHeight=100;
-
                 _textEditor.mouseEnabled=_textEditor.selectable=_textEditor.editable=true;
-
+				_textEditor.addEventListener(InPlaceTextEditorEvent.DELETE_CLICKED, onDeleteItem);
                 _textEditorContainer.addElement(_textEditor);
             }
             if (!_cornerObject) {
@@ -96,6 +103,39 @@ package uk.co.itrainconsulting.common.view.objectHandleObjects {
             }
             bindChildren();
         }
+		
+		private function onDeleteItem(e:Event):void {
+			var ke:KeyboardEvent=new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, false, 0, Keyboard.DELETE);
+			dispatchEvent(ke);
+		}
+		
+		override public function set width(value:Number):void {
+			var result:Number = value;
+			if (_editable) 
+				result += 2*CommonDefaults.TEXT_OBJECT_PADDING;
+			super.width = result;
+		}
+		
+		override public function set height(value:Number):void {
+			var result:Number = value;
+			if (_editable) 
+				result += 2*CommonDefaults.TEXT_OBJECT_PADDING;
+			super.height = result;
+		}
+		
+		override public function set x(value:Number):void {
+			var result:Number = value;
+			if (_editable) 
+				result -= CommonDefaults.TEXT_OBJECT_PADDING;
+			super.x = result;
+		}
+		
+		override public function set y(value:Number):void {
+			var result:Number = value;
+			if (_editable) 
+				result -= CommonDefaults.TEXT_OBJECT_PADDING;
+			super.y = result;
+		}
 
         private function createCornerObject():IVisualElement {
             var btn:Button=new Button;

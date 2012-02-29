@@ -43,16 +43,25 @@
 			
 			[Mediate(event="slideSelected")]
 			public function slideSelected(e:Event = null):void{
+				var index:int = slideList.selectedIndex;
 				if (e is IndexChangeEvent || e == null) {
 					if (contentModel.slides.slidesCount){
-						var index:int = (e != null) ? (e as IndexChangeEvent).newIndex : slideList.selectedIndex;
+						index = (e != null) ? (e as IndexChangeEvent).newIndex : slideList.selectedIndex;
 						var se:SlideEvent = new SlideEvent(ContentController.SLIDE_SELECTED, index == -1 ? null : Slide(contentModel.slides.getSlideAt(index)),true);
 						dispatchEvent(se);
 					}
 				} else if (e is SlideEvent && e.target != this){
 					slideList.removeEventListener(IndexChangeEvent.CHANGE, slideSelected);
 					slideList.selectedItem = (e as SlideEvent).slide;
+					index = contentModel.slides.getSlideIndex(slideList.selectedItem as Slide);
 					slideList.addEventListener(IndexChangeEvent.CHANGE, slideSelected);
+				}
+				
+				if (index > -1) {
+					callLater(function():void {
+						if (slideList.selectedIndex > -1)
+							slideList.ensureIndexIsVisible(index);
+					});
 				}
 			}
 			

@@ -9,47 +9,49 @@
     <fx:Script>
 
         <![CDATA[
-            import com.objecthandles.HandleDescription;
-            import com.objecthandles.HandleRoles;
-            import com.objecthandles.IHandle;
-            import com.objecthandles.ObjectHandles;
-            import com.objecthandles.SelectionEvent;
-            
-            import mx.binding.utils.BindingUtils;
-            import mx.binding.utils.ChangeWatcher;
-            import mx.collections.ArrayCollection;
-            import mx.containers.Box;
-            import mx.controls.TextArea;
-            import mx.core.IVisualElement;
-            import mx.core.UIComponent;
-            import mx.events.PropertyChangeEvent;
-            
-            import uk.co.itrainconsulting.common.model.EnumObjectType;
-            import uk.co.itrainconsulting.common.model.EnumShapeType;
-            import uk.co.itrainconsulting.common.model.Slide;
-            import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
-            import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
-            import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
-            import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
-            import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
-            import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
-            import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
-            import uk.co.itrainconsulting.common.utils.Embeded;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.AudioPlayer;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.IModelAware;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableButton;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableText;
-            import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableVideo;
-            import uk.co.itrainconsulting.contentbuilder.control.ContentController;
-            import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
-            import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
-            import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
-            import uk.co.itrainconsulting.contentbuilder.model.Constants;
-            import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
-            import uk.co.itrainconsulting.contentbuilder.model.NavigationModel;
-            import uk.co.itrainconsulting.handles.HandleFactory;
+			import com.objecthandles.HandleDescription;
+			import com.objecthandles.HandleObjectHelper;
+			import com.objecthandles.HandleRoles;
+			import com.objecthandles.IHandle;
+			import com.objecthandles.ObjectHandles;
+			import com.objecthandles.SelectionEvent;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.containers.Box;
+			import mx.controls.TextArea;
+			import mx.core.IVisualElement;
+			import mx.core.UIComponent;
+			import mx.events.PropertyChangeEvent;
+			
+			import uk.co.itrainconsulting.common.CommonDefaults;
+			import uk.co.itrainconsulting.common.model.EnumObjectType;
+			import uk.co.itrainconsulting.common.model.EnumShapeType;
+			import uk.co.itrainconsulting.common.model.Slide;
+			import uk.co.itrainconsulting.common.model.mediaObjects.AudioMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ButtonMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ImageMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
+			import uk.co.itrainconsulting.common.model.mediaObjects.ShapeMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.TextMedia;
+			import uk.co.itrainconsulting.common.model.mediaObjects.VideoMedia;
+			import uk.co.itrainconsulting.common.utils.Embeded;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.AudioPlayer;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.IModelAware;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableButton;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableImage;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableShape;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableText;
+			import uk.co.itrainconsulting.common.view.objectHandleObjects.SimpleResizableVideo;
+			import uk.co.itrainconsulting.contentbuilder.control.ContentController;
+			import uk.co.itrainconsulting.contentbuilder.control.events.ClearSelectionEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
+			import uk.co.itrainconsulting.contentbuilder.control.events.SlideEvent;
+			import uk.co.itrainconsulting.contentbuilder.model.Constants;
+			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
+			import uk.co.itrainconsulting.contentbuilder.model.NavigationModel;
+			import uk.co.itrainconsulting.handles.HandleFactory;
 
 
 
@@ -62,7 +64,6 @@
             [Inject]
             [Bindable]
             public var navigationModel:NavigationModel;
-
             private var lastSelectedObjects:Array=[];
             private var stageObjects:Array=new Array();
             private var objectsLookup:Dictionary=new Dictionary();
@@ -80,8 +81,9 @@
                 lineHandles.push(new HandleDescription(HandleRoles.RESIZE_LEFT, new Point(0, 50), new Point(), new HandleFactory()));
                 lineHandles.push(new HandleDescription(HandleRoles.ROTATE, new Point(50, 0), new Point(0, 20), new HandleFactory()));
 
-                _textEditorHandles=objectHandles.defaultHandles.concat();
+                _textEditorHandles=HandleObjectHelper.copyHandles(objectHandles.defaultHandles);
                 _textEditorHandles.push(new HandleDescription(HandleRoles.MOVE, new Point(50, 50), new Point(0, 0)));
+				HandleObjectHelper.moveHndles(_textEditorHandles, CommonDefaults.TEXT_OBJECT_PADDING);
             }
 
             private function clearSelection(e:Event=null):void {
@@ -185,6 +187,8 @@
                 contentModel.selectedType=modelObject.mediaType;
                 if (!(stageObject is SimpleResizableShape)) {
                     lastSelectedShape=null;
+					if (stageObject is SimpleResizableText)
+						(stageObject as SimpleResizableText).frameVisible = true;
                 }
                 dispatchEvent(new Event(ContentController.MEDIA_SELECTED, true));
             }
@@ -388,7 +392,7 @@
             [Mediate(event="EditorEvent.MEDIA_SELECT")]
             public function onSelectMediaEvent(ev:EditorEvent):void {
                 for each (var m:Object in objectHandles.modelList) {
-                    if (m.hasOwnProperty('media') && m.media == ev.media) {
+                    if (m == ev.media) {
                         objectHandles.selectionManager.setSelected(m);
                         return;
                     }

@@ -21,6 +21,7 @@ package uk.co.itrainconsulting.contentviewer.view.stageObjects
 		
 		override public function set model(value:TextMedia):void {
 			_model = value;
+			onEffectEnd();
 		}
 	}
 }

@@ -69,7 +69,7 @@ package uk.co.itrainconsulting.common.model.mediaObjects
 				if (advTextMode) {
 					for each(var t:XML in textObjectsList)
 					{
-						textChain.addItem(t);
+						textChain.addItem(t.toXMLString());
 					}
 					timeInterval = Number(xml.@timeInterval);
 				} else {
@@ -89,7 +89,7 @@ package uk.co.itrainconsulting.common.model.mediaObjects
 		override public function convertToXML():XML {
 			var tag:XML = <slideObject></slideObject>;
 			
-			appendToXML(tag);			
+			appendToXML(tag);
 			
 			if (advTextMode) {
 				for each(var t:String in textChain)

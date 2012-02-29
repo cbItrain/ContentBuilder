@@ -64,19 +64,23 @@
                                click="saveContent()"
 							   enabled="{!contentModel.isSaving &amp;&amp; (undoRedoBean.saveRequired || undoRedoBean.propertiesChanged)}"
                                icon="{Embeded.SAVE_ICON}"
+							   toolTip="Save Presentation"
                                label="Save"/>
 
     <baseComponents:IconButton click="contentClick()"
                                icon="{Embeded.CONT_PROP_ICON}"
+							   toolTip="Presentation properties"
                                label="Content Properties"/>
 	
 	<baseComponents:IconButton click="undoClick()"
 							   icon="{Embeded.UNDO_ICON}"
+							   label="Undo"
 							   enabled="{undoRedoBean.undoEnabled}"
 							   toolTip="Undo"/>
 	
 	<baseComponents:IconButton click="redoClick()"
 							   icon="{Embeded.REDO_ICON}"
+							   label="Redo"
 							   enabled="{undoRedoBean.redoEnabled}"
 							   toolTip="Redo"/>
 </s:HGroup>

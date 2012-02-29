@@ -65,7 +65,7 @@
             private var pauseIcon:Class;
 
             private function onCreationComplete():void {
-                ChangeWatcher.watch(this, 'currentLayerInd', onIndexChange);
+                ChangeWatcher.watch(this, ['model', 'currentLayerInd'], onIndexChange);
                 if (model.advTextMode && model.timeInterval > 0) {
                     _timer=new Timer(model.timeInterval * 1000);
                     _timer.start();
@@ -104,7 +104,7 @@
                 }
             }
 
-            private function onEffectEnd():void {
+            protected function onEffectEnd():void {
                 if (_playingEffect) {
                     if (_indexInc)
                         model.currentLayerInd=(model.currentLayerInd + 1) % model.textChain.length;
@@ -158,8 +158,8 @@
               width="{txtTextArea.width}"
               verticalAlign="middle"
               horizontalAlign="center"
-              includeInLayout="{model.timeInterval != 0}"
-              visible="{model.timeInterval != 0}">
+              includeInLayout="{model.advTextMode &amp;&amp; model.timeInterval == 0}"
+              visible="{model.advTextMode &amp;&amp; model.timeInterval == 0}">
         <mx:Image id="imgPrev"
                   source="@Embed('assets/icons/lArrow.svg')"
                   width="20"

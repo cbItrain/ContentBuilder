@@ -59,7 +59,7 @@
             }
 
             private function onGrContainerDimChng(ev:Event=null):void {
-                var trueHeight:Number=grContainer.height - label.height - padding - 18;
+                var trueHeight:Number=grContainer.height - padding - 18;
                 var scale:Number;
                 if (grContainer.width > trueHeight) {
                     scale=trueHeight / contentModel.selectedSlide.height;
@@ -110,14 +110,6 @@
             <s:VGroup width="100%"
                       height="100%"
                       gap="{padding}">
-                <s:Label text="{contentModel.selectedSlide.title}"
-                         textAlign="left"
-                         width="100%"
-                         fontSize="18"
-                         fontWeight="bold"
-                         color="0xffffff"
-                         id="label"
-                         creationComplete="this.filters = [dsf1]"/>
                 <s:Group width="100%"
                          height="100%">
                     <s:layout>

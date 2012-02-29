@@ -1,103 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
-               creationComplete="onCreationComplete()"
-               alpha=".8"
-               close="closeHandler()"
-               title="{(contentModel.selectedSlide != null)? 'Slide Objects': 'No Slide Selected'}"
-               addedEffect="{fadeInEffect}"
-               removedEffect="{fadeOutEffect}">
-    <fx:Declarations>
-        <s:Fade id="fadeInEffect"
-                alphaFrom="0"
-                alphaTo=".8"
-                duration="400"/>
-        <s:Fade id="fadeOutEffect"
-                alphaFrom=".8"
-                alphaTo="0"
-                duration="400"/>
-    </fx:Declarations>
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   creationComplete="onCreationComplete()"
+			   alpha=".8"
+			   close="closeHandler()"
+			   title="{(contentModel.selectedSlide != null)? 'Slide Objects': 'No Slide Selected'}"
+			   addedEffect="{fadeInEffect}"
+			   removedEffect="{fadeOutEffect}">
+	<fx:Declarations>
+		<s:Fade id="fadeInEffect"
+				alphaFrom="0"
+				alphaTo=".8"
+				duration="400"/>
+		<s:Fade id="fadeOutEffect"
+				alphaFrom=".8"
+				alphaTo="0"
+				duration="400"/>
+	</fx:Declarations>
 
-    <fx:Script>
-        <![CDATA[
+	<fx:Script>
+		<![CDATA[
 			import mx.events.DragEvent;
 			import mx.managers.PopUpManager;
-			
+
 			import spark.events.IndexChangeEvent;
 			import spark.layouts.VerticalLayout;
 			import spark.skins.spark.TitleWindowSkin;
 			import spark.skins.spark.ToggleButtonSkin;
-			
+
 			import uk.co.itrainconsulting.common.model.mediaObjects.MediaObject;
 			import uk.co.itrainconsulting.contentbuilder.control.events.EditorEvent;
 			import uk.co.itrainconsulting.contentbuilder.model.ContentModel;
 
-            [Dispatcher]
-            public var dispatcher:IEventDispatcher;
+			[Dispatcher]
+			public var dispatcher:IEventDispatcher;
 
-            [Inject]
-            [Bindable]
-            public var contentModel:ContentModel;
-			
-			private var _dragOldIndex:int = -1;
+			[Inject]
+			[Bindable]
+			public var contentModel:ContentModel;
 
-            private function onCreationComplete():void {
-                //this.titleDisplay.minHeight = 15;
-                (this.skin as TitleWindowSkin).tbFill.alpha=0.6;
-                (this.skin as TitleWindowSkin).tbDiv.alpha=0.3;
-                lstSlideObjects.addEventListener(IndexChangeEvent.CHANGE, onSelectionChange);
-            }
+			private var _dragOldIndex:int=-1;
 
-            public function onSelectionChange(ev:IndexChangeEvent):void {
-                var ee:EditorEvent = new EditorEvent(EditorEvent.MEDIA_SELECT, true);
-				ee.media = lstSlideObjects.selectedItem as MediaObject;
-				dispatcher.dispatchEvent(ee);
-            }
-			
-			private function onDragStart(ev:DragEvent):void {
-				var item:MediaObject=ev.dragSource.dataForFormat('itemsByIndex')[0] as MediaObject;
-				_dragOldIndex = contentModel.selectedSlide.stageObjects.getItemIndex(item);
+			private function onCreationComplete():void
+			{
+				//this.titleDisplay.minHeight = 15;
+				(this.skin as TitleWindowSkin).tbFill.alpha=0.6;
+				(this.skin as TitleWindowSkin).tbDiv.alpha=0.3;
+				lstSlideObjects.addEventListener(IndexChangeEvent.CHANGE, onSelectionChange);
 			}
 
-            private function onDragComplete(ev:DragEvent):void {
-                var item:MediaObject=ev.dragSource.dataForFormat('itemsByIndex')[0] as MediaObject;
-				var dragNewIndex:int = contentModel.selectedSlide.stageObjects.getItemIndex(item);
-				if (dragNewIndex != _dragOldIndex) {
-					var ee:EditorEvent = new EditorEvent(EditorEvent.MEDIA_REORDERED, true);
-					ee.media = item;
-					ee.additionalData = _dragOldIndex;
-                	dispatcher.dispatchEvent(ee);
+			public function onSelectionChange(ev:IndexChangeEvent):void
+			{
+				var ee:EditorEvent=new EditorEvent(EditorEvent.MEDIA_SELECT, true);
+				ee.media=lstSlideObjects.selectedItem as MediaObject;
+				dispatcher.dispatchEvent(ee);
+			}
+
+			private function onDragStart(ev:DragEvent):void
+			{
+				if (ev.dragSource)
+				{
+					var item:MediaObject=ev.dragSource.dataForFormat('itemsByIndex')[0] as MediaObject;
+					_dragOldIndex=contentModel.selectedSlide.stageObjects.getItemIndex(item);
 				}
-            }
+			}
 
-            [Mediate(event="EditorEvent.MEDIA_SELECT")]
-            public function selectMedia(ee:EditorEvent):void {
-                lstSlideObjects.removeEventListener(IndexChangeEvent.CHANGE, onSelectionChange);
-                lstSlideObjects.selectedItem=ee.media;
-                lstSlideObjects.addEventListener(IndexChangeEvent.CHANGE, onSelectionChange);
-            }
+			private function onDragComplete(ev:DragEvent):void
+			{
+				var item:MediaObject=ev.dragSource.dataForFormat('itemsByIndex')[0] as MediaObject;
+				var dragNewIndex:int=contentModel.selectedSlide.stageObjects.getItemIndex(item);
+				if (dragNewIndex != _dragOldIndex)
+				{
+					var ee:EditorEvent=new EditorEvent(EditorEvent.MEDIA_REORDERED, true);
+					ee.media=item;
+					ee.slide = contentModel.selectedSlide;
+					ee.additionalData=_dragOldIndex;
+					dispatcher.dispatchEvent(ee);
+				}
+			}
 
-            private function closeHandler():void {
-                PopUpManager.removePopUp(this);
-            }
-        ]]>
-    </fx:Script>
-    <s:layout>
-        <s:VerticalLayout horizontalAlign="center"/>
-    </s:layout>
-    <s:VGroup width="100%">
-        <s:List id="lstSlideObjects"
-                dataProvider="{contentModel.selectedSlide.stageObjects}"
-                width="300"
-                height="300"
-                change="onSelectionChange(event)"
-				dragStart="onDragStart(event)"
-                dragComplete="onDragComplete(event)"
-                borderVisible="false"
-                dragMoveEnabled="true"
-                dragEnabled="true"
-                dropEnabled="true"
-                itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideObjectItemRenderer"/>
-    </s:VGroup>
+			[Mediate(event="EditorEvent.MEDIA_SELECT")]
+			public function selectMedia(ee:EditorEvent):void
+			{
+				lstSlideObjects.removeEventListener(IndexChangeEvent.CHANGE, onSelectionChange);
+				lstSlideObjects.selectedItem=ee.media;
+				lstSlideObjects.addEventListener(IndexChangeEvent.CHANGE, onSelectionChange);
+			}
+
+			private function closeHandler():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+	<s:layout>
+		<s:VerticalLayout horizontalAlign="center"/>
+	</s:layout>
+	<s:VGroup width="100%">
+		<s:List id="lstSlideObjects"
+				dataProvider="{contentModel.selectedSlide.stageObjects}"
+				width="300"
+				height="300"
+				change="onSelectionChange(event)"
+				dragEnter="onDragStart(event)"
+				dragComplete="onDragComplete(event)"
+				borderVisible="false"
+				dragMoveEnabled="true"
+				dragEnabled="true"
+				dropEnabled="true"
+				itemRenderer="uk.co.itrainconsulting.contentbuilder.view.itemRenderers.SlideObjectItemRenderer"/>
+	</s:VGroup>
 </s:TitleWindow>
